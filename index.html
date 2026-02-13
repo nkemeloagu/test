@@ -46,9 +46,10 @@
 <body class="selection:bg-blue-500/30">
 
     <div id="app">
+        <!-- Initial view is a simple, non-blocking splash to prevent infinite loading -->
         <div class="flex flex-col items-center justify-center min-h-screen">
-            <div class="animate-pulse text-slate-500 font-bold tracking-widest uppercase italic mb-4">Initialising Descasio Hub...</div>
-            <div class="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+            <div class="animate-pulse text-slate-500 font-bold tracking-widest uppercase italic mb-4">Establishing Secure Connection...</div>
+            <div class="w-10 h-10 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
         </div>
     </div>
 
@@ -68,12 +69,10 @@
         const db = firebase.firestore();
         const STABLE_APP_ID = "descasio-innovation-hub-perpetual";
 
-        // --- Data & State ---
+        // --- Data & Constants ---
         const DEPARTMENTS = ["Finance", "Sales", "Customer Success", "HR/Admin", "Marketing", "Strategy", "Product", "Software Engineering", "Technology Services"];
         const PREVIOUS_WINNER = { name: "Femi Olugbesan", dept: "CIO", title: "Enterprise AI Strategy Framework", month: "April", avatar: "FO" };
-
-        // SHA-256 hash of "$98#2"
-        const ADMIN_HASH = "b36c46927d6d376166115995738879685718a7b9736882679237667950893541";
+        const ADMIN_HASH = "b36c46927d6d376166115995738879685718a7b9736882679237667950893541"; // Hash of $98#2
 
         const MONTHLY_RECORDS = [
             { month: "March", winner: null, solution: null, status: "upcoming" },
@@ -88,6 +87,7 @@
             { month: "December", winner: null, solution: null, status: "upcoming" },
         ];
 
+        // --- Application State ---
         let state = {
             user: null,
             activeTab: 'dashboard',
@@ -106,7 +106,7 @@
 
         const EXTERNAL_VOTING_URL = "https://surveymars.com/q/7JKogeul9";
 
-        // --- Security Hashing Utility ---
+        // --- Security Utils ---
         async function sha256(message) {
             const msgBuffer = new TextEncoder().encode(message);
             const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
@@ -136,11 +136,12 @@
             };
         }
 
+        // --- UI Rendering ---
         function renderLogin() {
             const app = document.getElementById('app');
             app.innerHTML = `
                 <div class="min-h-screen hero-gradient flex items-center justify-center p-6">
-                    <div class="bg-slate-900/40 backdrop-blur-3xl border border-white/10 p-12 rounded-[3rem] shadow-2xl max-w-md w-full text-center space-y-8 animate-in zoom-in-95">
+                    <div class="bg-slate-900/60 backdrop-blur-3xl border border-white/10 p-12 rounded-[3rem] shadow-2xl max-w-md w-full text-center space-y-8 animate-in zoom-in-95">
                         <div class="w-20 h-20 bg-blue-700 rounded-3xl flex items-center justify-center mx-auto shadow-2xl shadow-blue-900/40 border-2 border-white/10">
                             <i data-lucide="zap" class="text-white w-10 h-10"></i>
                         </div>
@@ -148,24 +149,17 @@
                             <h1 class="text-4xl font-black tracking-tighter text-white uppercase italic leading-none">DESCASIO</h1>
                             <p class="text-[10px] text-blue-400 font-bold tracking-[0.3em] uppercase mt-2">Innovation Hub Submissions</p>
                         </div>
-                        <p class="text-slate-400 text-sm italic leading-relaxed">Corporate Single Sign-On (SSO) required.<br>Please sign in with your @descasio.io Google Workspace account.</p>
+                        <p class="text-slate-300 text-sm italic leading-relaxed">Corporate Single Sign-On required.<br>Please sign in with your @descasio.io Google account.</p>
                         
-                        ${state.authError ? `
-                            <div class="bg-red-500/10 border border-red-500/20 p-4 rounded-xl text-red-400 text-[10px] font-bold uppercase tracking-widest leading-relaxed">
-                                <p>${state.authError}</p>
-                            </div>
-                        ` : ''}
+                        ${state.authError ? `<div class="bg-red-500/10 border border-red-500/20 p-4 rounded-xl text-red-400 text-[10px] font-bold uppercase tracking-widest leading-relaxed">${state.authError}</div>` : ''}
 
                         <button onclick="handleGoogleLogin()" 
-                                class="w-full bg-white text-slate-950 font-black py-5 rounded-2xl flex items-center justify-center gap-3 hover:scale-[1.02] transition shadow-2xl tracking-widest uppercase text-xs active:scale-95 disabled:opacity-50"
-                                ${state.isAuthenticating ? 'disabled' : ''}>
+                                class="w-full bg-white text-slate-950 font-black py-5 rounded-2xl flex items-center justify-center gap-3 hover:scale-[1.02] transition shadow-2xl tracking-widest uppercase text-xs active:scale-95 disabled:opacity-50">
                             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5 h-5">
-                            ${state.isAuthenticating ? 'Authenticating...' : 'Sign in with Google'}
+                            ${state.isAuthenticating ? 'Authorising...' : 'Sign in with Google'}
                         </button>
                         
-                        <div class="space-y-2">
-                            <p class="text-[9px] text-slate-500 font-black uppercase tracking-widest">Secure Cloud Gateway</p>
-                        </div>
+                        <p class="text-[9px] text-slate-500 font-black uppercase tracking-widest">Restricted Gateway</p>
                     </div>
                 </div>
             `;
@@ -178,23 +172,20 @@
             updateUI();
             
             const provider = new firebase.auth.GoogleAuthProvider();
-            // Optional: force account selection
-            provider.setCustomParameters({ prompt: 'select_account' });
-
             try {
-                // If on GitHub Pages, Popup is usually more successful than redirect which can hang
+                // Using Popup as it's more stable for GitHub Pages auth flow
                 const result = await auth.signInWithPopup(provider);
                 const user = result.user;
                 if (!user.email.toLowerCase().endsWith('@descasio.io')) {
                     await auth.signOut();
-                    state.authError = "Restricted to @descasio.io domains.";
+                    state.authError = "Unauthorized: @descasio.io email required.";
                     state.isAuthenticating = false;
                     renderLogin();
                 }
             } catch (error) {
                 console.error("Auth Error:", error);
                 state.isAuthenticating = false;
-                state.authError = "Auth failed. Ensure popups are allowed or try a different browser.";
+                state.authError = "Connection failed. Please ensure popups are enabled and try again.";
                 renderLogin();
             }
         }
@@ -238,7 +229,7 @@
                 ${state.showAdminLogin ? renderAdminLogin() : ''}
 
                 <footer class="max-w-7xl mx-auto p-8 border-t border-slate-900 flex flex-col items-center gap-2 mt-20 text-center">
-                    <p class="text-blue-400 text-sm font-black uppercase tracking-[0.15em] mb-4">
+                    <p class="text-blue-400 text-lg font-black uppercase tracking-[0.15em] mb-4 drop-shadow-[0_0_10px_rgba(59,130,246,0.3)]">
                         For Support and Feedback, email ai-innovation-hub@descasio.io
                     </p>
                     <div class="text-slate-600 text-[10px] font-bold uppercase tracking-[0.2em] italic underline decoration-blue-500/30 underline-offset-4">
@@ -259,17 +250,16 @@
                                 <div>
                                     <span class="bg-orange-500/20 text-orange-400 border border-orange-500/30 px-3 py-1 rounded-full text-[10px] uppercase font-bold tracking-widest">Active Campaign</span>
                                     <h2 class="text-5xl font-black mt-6 mb-4 text-white leading-none italic tracking-tighter uppercase">Optimizing Client Onboarding with AI</h2>
-                                    <p class="text-blue-100 text-lg mb-8 max-w-lg opacity-80">Drive growth with Descasio's monthly challenge. Automate touchpoints while keeping the human touch.</p>
-                                    
+                                    <p class="text-blue-100 text-lg mb-8 max-w-lg opacity-80 italic">Automate acquisitions while maintaining Descasio's high-quality personal touch.</p>
                                     <div class="flex flex-wrap gap-4 items-center">
-                                        <button onclick="navigate('challenge')" class="bg-white text-blue-900 px-8 py-4 rounded-2xl font-black uppercase text-xs tracking-widest hover:scale-105 transition shadow-2xl">The Brief <i data-lucide="chevron-right" class="inline w-4 h-4"></i></button>
-                                        <div class="bg-black/20 backdrop-blur-md px-6 py-4 rounded-2xl border border-white/10 flex items-center gap-4 text-white">
-                                            <div class="text-center"><span class="block text-[8px] opacity-60 font-black uppercase">${state.timeLeft.label}</span><span class="font-mono text-2xl font-bold">${state.timeLeft.days}d : ${state.timeLeft.hours}h : ${state.timeLeft.mins}m</span></div>
+                                        <button onclick="navigate('challenge')" class="bg-white text-blue-900 px-8 py-4 rounded-2xl font-black uppercase text-xs tracking-widest hover:scale-105 transition shadow-2xl">The Brief <i data-lucide="chevron-right" class="inline w-4 h-4 ml-1"></i></button>
+                                        <div class="bg-black/20 backdrop-blur-md px-6 py-4 rounded-2xl border border-white/10 flex items-center gap-4 text-white font-mono">
+                                            <div class="text-center"><span class="block text-[8px] opacity-60 font-black uppercase">${state.timeLeft.label}</span><span>${state.timeLeft.days}d : ${state.timeLeft.hours}h : ${state.timeLeft.mins}m</span></div>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="bg-slate-900/40 backdrop-blur-xl border border-white/10 p-6 rounded-3xl">
-                                    <h3 class="flex items-center gap-2 text-blue-200 font-bold mb-6 text-xs uppercase tracking-widest"><i data-lucide="trophy" class="text-yellow-400 w-4 h-4"></i> Previous Innovator</h3>
+                                    <h3 class="flex items-center gap-2 text-blue-200 font-bold mb-6 text-xs uppercase tracking-widest"><i data-lucide="trophy" class="text-yellow-400 w-4 h-4"></i> Hall of Fame Preview</h3>
                                     <div class="flex items-center gap-4 mb-4">
                                         <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white font-black text-2xl shadow-xl">${PREVIOUS_WINNER.avatar}</div>
                                         <div><p class="font-black text-white text-xl uppercase tracking-tighter">${PREVIOUS_WINNER.name}</p><p class="text-blue-400 text-xs font-bold uppercase tracking-widest">${PREVIOUS_WINNER.dept}</p></div>
@@ -288,31 +278,28 @@
 
             if (state.activeTab === 'ideahub') {
                 return `
-                    <div class="max-w-5xl mx-auto space-y-12">
-                        <div class="text-center"><h2 class="text-4xl font-black text-white italic uppercase tracking-tighter">AI Idea Crowdsourcing</h2><p class="text-slate-500 font-bold uppercase tracking-widest text-xs mt-2">What AI solutions should we build next?</p></div>
+                    <div class="max-w-5xl mx-auto space-y-12 animate-in fade-in">
+                        <div class="text-center"><h2 class="text-4xl font-black text-white italic uppercase tracking-tighter">AI Idea Hub</h2><p class="text-slate-500 font-bold uppercase tracking-widest text-xs mt-2 italic underline underline-offset-4">What AI solutions should we build next?</p></div>
                         <div class="bg-slate-900 border border-blue-500/10 rounded-[2.5rem] p-10 max-w-2xl mx-auto shadow-2xl custom-card">
-                            <h3 class="text-2xl font-black text-white mb-8 italic uppercase tracking-tighter flex items-center gap-3"><i data-lucide="lightbulb" class="text-yellow-400"></i> Pitch an AI Concept</h3>
                             <form onsubmit="handleIdeaSubmit(event)" class="space-y-6">
                                 <div class="grid md:grid-cols-2 gap-6">
-                                    <input required oninput="handleFormInput('ideaData', 'name', this.value)" value="${state.ideaData.name || ''}" class="bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-bold text-sm" placeholder="Full Name">
-                                    <input required oninput="handleFormInput('ideaData', 'email', this.value)" value="${state.ideaData.email || ''}" type="email" class="bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-bold text-sm" placeholder="Work Email">
                                     <select onchange="handleFormInput('ideaData', 'dept', this.value)" class="bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-bold text-sm">
-                                        <option value="">Select Dept</option>
+                                        <option value="">Select Department</option>
                                         ${DEPARTMENTS.map(d => `<option value="${d}" ${state.ideaData.dept === d ? 'selected' : ''}>${d}</option>`).join('')}
                                     </select>
                                     <input required oninput="handleFormInput('ideaData', 'title', this.value)" value="${state.ideaData.title || ''}" class="bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-bold text-sm" placeholder="Idea Title">
                                 </div>
-                                <textarea required oninput="handleFormInput('ideaData', 'description', this.value)" rows="4" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 text-sm" placeholder="Description...">${state.ideaData.description || ''}</textarea>
+                                <textarea required oninput="handleFormInput('ideaData', 'description', this.value)" rows="4" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 text-sm" placeholder="Describe the challenge AI could solve...">${state.ideaData.description || ''}</textarea>
                                 <button type="submit" class="w-full bg-blue-700 hover:bg-blue-600 text-white font-black p-5 rounded-2xl uppercase tracking-widest text-xs">Share Concept</button>
                             </form>
                         </div>
                         <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                             ${state.ideas.map(idea => `
                                 <div class="bg-slate-900 p-6 rounded-3xl border border-slate-800 hover:border-blue-500/30 transition-all group">
-                                    <div class="flex items-center gap-2 text-blue-500 mb-4"><i data-lucide="lightbulb" class="w-4 h-4"></i> <span class="text-[10px] font-black uppercase tracking-widest">Concept</span></div>
+                                    <div class="flex items-center gap-2 text-blue-500 mb-4"><i data-lucide="lightbulb" class="w-4 h-4"></i> <span class="text-[10px] font-black uppercase tracking-widest">Team Contribution</span></div>
                                     <h4 class="text-white font-black text-lg mb-2 uppercase leading-tight group-hover:text-blue-400 transition-colors">${idea.title}</h4>
-                                    <p class="text-slate-400 text-sm italic line-clamp-4 italic break-all italic">"${idea.description}"</p>
-                                    <div class="mt-6 pt-4 border-t border-slate-800 text-[9px] font-black text-slate-500 uppercase tracking-widest italic">By ${idea.name || 'Anonymous'}</div>
+                                    <p class="text-slate-400 text-sm italic line-clamp-4 italic break-all">"${idea.description}"</p>
+                                    <div class="mt-6 pt-4 border-t border-slate-800 text-[9px] font-black text-slate-500 uppercase tracking-widest">By ${idea.name || 'Anonymous'}</div>
                                 </div>
                             `).join('')}
                         </div>
@@ -323,8 +310,9 @@
             if (state.activeTab === 'challenge') {
                 return `
                     <div class="max-w-4xl mx-auto space-y-12 animate-in slide-in-from-bottom duration-500">
-                        <div class="border-b border-slate-800 pb-8 text-center"><h2 class="text-4xl font-black mb-4 text-white uppercase italic tracking-tighter">Challenge Detail</h2><p class="text-slate-400 text-lg opacity-70 italic">Design AI workflows to streamline acquisitions and onboarding.</p></div>
+                        <div class="border-b border-slate-800 pb-8 text-center"><h2 class="text-4xl font-black mb-4 text-white uppercase italic tracking-tighter leading-none">Challenge Detail</h2><p class="text-slate-400 text-lg opacity-70 italic mt-2">Scale acquiring and onboarding through AI automation.</p></div>
                         
+                        <!-- Visual Criteria Grid -->
                         <div class="grid grid-cols-3 gap-6">
                             <div class="bg-slate-900 border border-slate-800 p-10 rounded-[2rem] text-center shadow-xl">
                                 <p class="text-blue-400 font-black text-[10px] uppercase tracking-widest mb-2">Impact</p>
@@ -341,61 +329,46 @@
                         </div>
 
                         <div class="bg-slate-900 border border-slate-800 p-8 rounded-3xl shadow-xl">
-                            <h3 class="text-2xl font-black text-white mb-6 uppercase flex items-center gap-3"><i data-lucide="check-circle" class="text-emerald-500"></i> Monthly Key Criteria</h3>
-                            <ul class="space-y-4 text-slate-300 text-sm font-medium">
-                                <li class="flex items-start gap-3 italic"><i data-lucide="chevron-right" class="text-blue-500 w-4 h-4 mt-0.5"></i> Primary focus: Improving the 'speed-to-value' for new enterprise clients.</li>
-                                <li class="flex items-start gap-3 italic"><i data-lucide="chevron-right" class="text-blue-500 w-4 h-4 mt-0.5"></i> Automation depth: The agent must handle at least 3 distinct stages of the onboarding workflow.</li>
-                                <li class="flex items-start gap-3 italic"><i data-lucide="chevron-right" class="text-blue-500 w-4 h-4 mt-0.5"></i> Scalability: Solution must be easily adaptable across multiple departments.</li>
+                            <h3 class="text-2xl font-black text-white mb-6 uppercase flex items-center gap-3"><i data-lucide="check-circle" class="text-emerald-500"></i> Critical Success Factors</h3>
+                            <ul class="space-y-4 text-slate-300 text-sm italic font-medium">
+                                <li class="flex items-start gap-3"><i data-lucide="chevron-right" class="text-blue-500 w-4 h-4 mt-0.5"></i> Primary focus: Improving the 'speed-to-value' for new enterprise clients.</li>
+                                <li class="flex items-start gap-3"><i data-lucide="chevron-right" class="text-blue-500 w-4 h-4 mt-0.5"></i> Automation depth: The agent must handle at least 3 distinct stages of the workflow.</li>
+                                <li class="flex items-start gap-3"><i data-lucide="chevron-right" class="text-blue-500 w-4 h-4 mt-0.5"></i> Scalability: Solution must be easily adaptable across multiple departments.</li>
                             </ul>
                         </div>
 
                         <div class="bg-slate-900 border-2 border-blue-500/20 rounded-[3rem] p-12 shadow-2xl">
-                            <h3 class="text-3xl font-black text-white mb-10 italic uppercase tracking-tighter flex items-center gap-3"><i data-lucide="plus-circle" class="text-blue-500"></i> Share Your Innovation</h3>
+                            <h3 class="text-3xl font-black text-white mb-10 italic uppercase tracking-tighter flex items-center gap-3 leading-none"><i data-lucide="plus-circle" class="text-blue-500"></i> Broadcast Solution</h3>
                             
                             <div class="flex gap-4 mb-10 bg-slate-950 p-2 rounded-2xl border border-slate-800 max-w-md">
-                                <button onclick="setSubmissionType('individual')" class="flex-1 py-3 rounded-xl font-black text-[10px] uppercase transition-all ${state.submissionType === 'individual' ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/30' : 'text-slate-500 hover:text-white'}">Individual</button>
-                                <button onclick="setSubmissionType('group')" class="flex-1 py-3 rounded-xl font-black text-[10px] uppercase transition-all ${state.submissionType === 'group' ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/30' : 'text-slate-500 hover:text-white'}">Group (Team of 2)</button>
+                                <button onclick="setSubmissionType('individual')" class="flex-1 py-3 rounded-xl font-black text-[10px] uppercase transition-all ${state.submissionType === 'individual' ? 'bg-blue-600 text-white' : 'text-slate-500'}">Individual</button>
+                                <button onclick="setSubmissionType('group')" class="flex-1 py-3 rounded-xl font-black text-[10px] uppercase transition-all ${state.submissionType === 'group' ? 'bg-blue-600 text-white' : 'text-slate-500'}">Group (Team of 2)</button>
                             </div>
 
                             <form onsubmit="handleFormSubmit(event)" class="space-y-8">
                                 ${state.submissionType === 'individual' ? `
                                     <div class="grid md:grid-cols-2 gap-6 animate-in fade-in">
-                                        <div class="space-y-2">
-                                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Full Name</label>
-                                            <input required oninput="handleFormInput('formData', 'name', this.value)" value="${state.formData.name || ''}" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-bold">
-                                        </div>
-                                        <div class="space-y-2">
-                                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Email (@descasio.io)</label>
-                                            <input required oninput="handleFormInput('formData', 'email', this.value)" value="${state.formData.email || ''}" type="email" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-bold">
-                                        </div>
-                                        <div class="space-y-2 col-span-full">
-                                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Department</label>
-                                            <select onchange="handleFormInput('formData', 'dept', this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-bold">
-                                                <option value="">Select Dept</option>
-                                                ${DEPARTMENTS.map(d => `<option value="${d}" ${state.formData.dept === d ? 'selected' : ''}>${d}</option>`).join('')}
-                                            </select>
-                                        </div>
+                                        <input required oninput="handleFormInput('formData', 'name', this.value)" value="${state.formData.name || ''}" class="bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-bold text-sm" placeholder="Your Name">
+                                        <select onchange="handleFormInput('formData', 'dept', this.value)" class="bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-bold text-sm">
+                                            <option value="">Select Dept</option>
+                                            ${DEPARTMENTS.map(d => `<option value="${d}" ${state.formData.dept === d ? 'selected' : ''}>${d}</option>`).join('')}
+                                        </select>
                                     </div>
                                 ` : `
                                     <div class="space-y-8 animate-in slide-in-from-top-2">
-                                        <div class="space-y-2">
-                                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Team Name</label>
-                                            <input required oninput="handleFormInput('formData', 'teamName', this.value)" value="${state.formData.teamName || ''}" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-black uppercase italic" placeholder="THE DESCASIO AVENGERS">
-                                        </div>
-                                        <div class="grid md:grid-cols-2 gap-6 p-8 bg-slate-950 rounded-3xl border border-slate-800 shadow-inner">
-                                            <div class="col-span-full border-b border-slate-800 pb-3 mb-3"><span class="text-[10px] font-black text-blue-500 uppercase tracking-[0.2em]">Team Member 01</span></div>
-                                            <input required oninput="handleFormInput('formData', 'member1Name', this.value)" value="${state.formData.member1Name || ''}" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-1 ring-blue-600 font-bold" placeholder="Name">
-                                            <input required oninput="handleFormInput('formData', 'member1Email', this.value)" value="${state.formData.member1Email || ''}" type="email" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-1 ring-blue-600 font-bold" placeholder="Email">
-                                            <select onchange="handleFormInput('formData', 'member1Dept', this.value)" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white outline-none font-bold col-span-full">
+                                        <input required oninput="handleFormInput('formData', 'teamName', this.value)" value="${state.formData.teamName || ''}" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-black uppercase italic text-sm" placeholder="THE DESCASIO AVENGERS">
+                                        <div class="grid md:grid-cols-2 gap-6 p-8 bg-slate-950 rounded-3xl border border-slate-800">
+                                            <div class="col-span-full border-b border-slate-800 pb-3 mb-3 font-black text-[9px] text-blue-500 uppercase">Innovator 01</div>
+                                            <input required oninput="handleFormInput('formData', 'member1Name', this.value)" value="${state.formData.member1Name || ''}" class="bg-slate-900 border border-slate-800 rounded-xl p-4 text-white outline-none text-sm font-bold" placeholder="Full Name">
+                                            <select onchange="handleFormInput('formData', 'member1Dept', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl p-4 text-white outline-none font-bold text-sm">
                                                 <option value="">Select Dept</option>
                                                 ${DEPARTMENTS.map(d => `<option value="${d}" ${state.formData.member1Dept === d ? 'selected' : ''}>${d}</option>`).join('')}
                                             </select>
                                         </div>
-                                        <div class="grid md:grid-cols-2 gap-6 p-8 bg-slate-950 rounded-3xl border border-slate-800 shadow-inner">
-                                            <div class="col-span-full border-b border-slate-800 pb-3 mb-3"><span class="text-[10px] font-black text-blue-500 uppercase tracking-[0.2em]">Team Member 02</span></div>
-                                            <input required oninput="handleFormInput('formData', 'member2Name', this.value)" value="${state.formData.member2Name || ''}" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-1 ring-blue-600 font-bold" placeholder="Name">
-                                            <input required oninput="handleFormInput('formData', 'member2Email', this.value)" value="${state.formData.member2Email || ''}" type="email" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-1 ring-blue-600 font-bold" placeholder="Email">
-                                            <select onchange="handleFormInput('formData', 'member2Dept', this.value)" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white outline-none font-bold col-span-full">
+                                        <div class="grid md:grid-cols-2 gap-6 p-8 bg-slate-950 rounded-3xl border border-slate-800">
+                                            <div class="col-span-full border-b border-slate-800 pb-3 mb-3 font-black text-[9px] text-blue-500 uppercase">Innovator 02</div>
+                                            <input required oninput="handleFormInput('formData', 'member2Name', this.value)" value="${state.formData.member2Name || ''}" class="bg-slate-900 border border-slate-800 rounded-xl p-4 text-white outline-none text-sm font-bold" placeholder="Full Name">
+                                            <select onchange="handleFormInput('formData', 'member2Dept', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl p-4 text-white outline-none font-bold text-sm">
                                                 <option value="">Select Dept</option>
                                                 ${DEPARTMENTS.map(d => `<option value="${d}" ${state.formData.member2Dept === d ? 'selected' : ''}>${d}</option>`).join('')}
                                             </select>
@@ -403,12 +376,15 @@
                                     </div>
                                 `}
                                 <div class="pt-10 border-t border-slate-800 space-y-8">
-                                    <input required oninput="handleFormInput('formData', 'innovationName', this.value)" value="${state.formData.innovationName || ''}" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-bold" placeholder="Innovation Name">
-                                    <input required oninput="handleFormInput('formData', 'docLink', this.value)" value="${state.formData.docLink || ''}" type="url" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-mono text-xs italic" placeholder="https://...">
-                                    <textarea required oninput="handleFormInput('formData', 'achievements', this.value)" rows="6" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 text-sm font-medium" placeholder="Summary of impact...">${state.formData.achievements || ''}</textarea>
+                                    <input required oninput="handleFormInput('formData', 'innovationName', this.value)" value="${state.formData.innovationName || ''}" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-bold" placeholder="Innovation System Name">
+                                    <div class="space-y-2">
+                                        <input required oninput="handleFormInput('formData', 'docLink', this.value)" value="${state.formData.docLink || ''}" type="url" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-mono text-xs italic" placeholder="Shared Documentation Link (https://...)">
+                                        <p class="text-[9px] font-black text-blue-400 uppercase tracking-widest italic ml-1">Insight: Submissions should start with https://</p>
+                                    </div>
+                                    <textarea required oninput="handleFormInput('formData', 'achievements', this.value)" rows="6" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 text-sm font-medium italic leading-relaxed" placeholder="Summarise the impact and efficient outcomes...">${state.formData.achievements || ''}</textarea>
                                 </div>
                                 <div id="formStatus"></div>
-                                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-6 rounded-2xl transition shadow-2xl uppercase tracking-[0.2em] active:scale-[0.98]">Broadcast Innovation to Cloud Hub</button>
+                                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-6 rounded-2xl transition shadow-2xl uppercase tracking-[0.2em] active:scale-[0.98]">Broadcast Innovation to Cloud</button>
                             </form>
                         </div>
                     </div>
@@ -421,19 +397,19 @@
                     <div class="space-y-12 animate-in fade-in">
                         <section class="space-y-8">
                             <div class="flex flex-col md:flex-row md:items-center justify-between gap-8 border-b border-slate-800 pb-10">
-                                <div><h2 class="text-4xl font-black text-white italic tracking-tighter uppercase underline decoration-blue-500 decoration-8 underline-offset-8">Shortlisted for Voting</h2></div>
-                                <a href="${EXTERNAL_VOTING_URL}" target="_blank" class="btn-shiny text-white px-12 py-6 rounded-[2rem] font-black uppercase text-sm tracking-[0.1em] shadow-2xl transition hover:scale-110 flex items-center justify-center gap-4 active:scale-95">
+                                <div><h2 class="text-4xl font-black text-white italic tracking-tighter uppercase underline decoration-blue-500 decoration-8 underline-offset-8 leading-none">Shortlisted for Voting</h2></div>
+                                <a href="${EXTERNAL_VOTING_URL}" target="_blank" class="btn-shiny text-white px-12 py-6 rounded-[2rem] font-black uppercase text-sm tracking-[0.1em] shadow-2xl transition hover:scale-110 flex items-center justify-center gap-4">
                                     <i data-lucide="vote" class="w-6 h-6"></i> CAST OFFICIAL VOTE
                                 </a>
                             </div>
                             <div class="grid md:grid-cols-3 gap-8">
                                 ${shortlisted.map(item => `
                                     <div class="bg-slate-900 border-2 border-blue-500/20 rounded-[2.5rem] p-8 flex flex-col h-full bg-blue-500/5 shadow-2xl group transition-all hover:border-blue-500/50">
-                                        <div class="flex justify-between items-center mb-8"><span class="bg-blue-600/20 text-blue-400 border border-blue-400/30 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest">${item.type === 'group' ? 'TEAM' : (item.dept || 'INNOVATION')}</span></div>
+                                        <div class="flex justify-between items-center mb-8"><span class="bg-blue-600/20 text-blue-400 border border-blue-400/30 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest">${item.type === 'group' ? 'TEAM' : (item.dept || 'CORE')}</span></div>
                                         <h3 class="text-2xl font-black text-white mb-3 uppercase leading-tight italic tracking-tighter group-hover:text-blue-400 transition-colors">${item.innovationName}</h3>
                                         <p class="text-slate-500 text-[10px] mb-8 uppercase tracking-[0.2em] font-black">BY ${item.type === 'group' ? item.teamName : item.name}</p>
                                         <button onclick="showDetails('${item.id}')" class="w-full text-left bg-slate-950/60 rounded-3xl p-6 border border-white/5 mb-8 transition-all overflow-hidden group-hover:shadow-inner hover:border-blue-500/30">
-                                            <p class="text-xs text-slate-300 line-clamp-4 break-all italic italic leading-relaxed">"${item.achievements}"</p>
+                                            <p class="text-xs text-slate-300 line-clamp-4 break-all italic leading-relaxed">"${item.achievements}"</p>
                                         </button>
                                         <div class="mt-auto pt-6 border-t border-slate-800 text-center"><p class="text-[9px] font-black text-slate-600 uppercase tracking-[0.3em] italic">Verified Solution Entry</p></div>
                                     </div>
@@ -461,7 +437,7 @@
             }
 
             if (state.activeTab === 'winners') {
-                return `<div class="max-w-6xl mx-auto space-y-12 animate-in zoom-in-95 duration-500"><div class="text-center"><h2 class="text-5xl font-black text-white italic tracking-tighter uppercase leading-none">Hall of Fame</h2></div><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">${MONTHLY_RECORDS.map(item => `<div class="bg-slate-900 rounded-[2.5rem] p-10 border-2 ${item.status === 'active' ? 'border-blue-500 shadow-blue-900/40 shadow-2xl' : 'border-slate-800'} relative overflow-hidden"><div class="flex justify-between items-start mb-8"><span class="text-slate-500 font-black text-xs uppercase tracking-[0.2em]">${item.month}</span>${item.status === 'completed' ? '<i data-lucide="medal" class="text-yellow-500 w-8 h-8"></i>' : item.status === 'active' ? '<div class="w-3 h-3 rounded-full bg-blue-500 animate-ping"></div>' : ''}</div><div class="py-16 flex flex-col items-center justify-center border-2 border-dashed border-slate-800 rounded-[2.5rem]"><p class="text-slate-700 font-black text-xs uppercase tracking-widest italic">${item.status === 'active' ? 'HUNT IN PROGRESS' : 'UPCOMING'}</p></div></div>`).join('')}</div></div>`;
+                return `<div class="max-w-6xl mx-auto space-y-12 animate-in zoom-in-95 duration-500"><div class="text-center"><h2 class="text-5xl font-black text-white italic tracking-tighter uppercase leading-none">Hall of Fame</h2></div><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">${MONTHLY_RECORDS.map(item => `<div class="bg-slate-900 rounded-[2.5rem] p-10 border-2 ${item.status === 'active' ? 'border-blue-500 shadow-blue-900/40 shadow-2xl' : 'border-slate-800'} relative overflow-hidden"><div class="flex justify-between items-start mb-8"><span class="text-slate-500 font-black text-xs uppercase tracking-[0.2em]">${item.month}</span>${item.status === 'completed' ? '<i data-lucide="medal" class="text-yellow-500 w-8 h-8"></i>' : item.status === 'active' ? '<div class="w-3 h-3 rounded-full bg-blue-500 animate-ping"></div>' : ''}</div><div class="py-16 flex flex-col items-center justify-center border-2 border-dashed border-slate-800 rounded-[2.5rem]"><p class="text-slate-700 font-black text-xs uppercase tracking-widest italic leading-none">${item.status === 'active' ? 'HUNT IN PROGRESS' : 'UPCOMING'}</p></div></div>`).join('')}</div></div>`;
             }
 
             if (state.activeTab === 'admin') {
@@ -470,11 +446,11 @@
                         <div class="flex justify-between items-end border-b border-slate-800 pb-10"><div><h2 class="text-4xl font-black text-white italic tracking-tighter leading-none uppercase">Admin Control</h2></div><button onclick="auth.signOut()" class="bg-red-600/10 text-red-500 text-[10px] font-black uppercase px-6 py-3 rounded-xl border border-red-500/20 hover:bg-red-600 hover:text-white transition-all">Sign Out</button></div>
                         <div class="overflow-hidden rounded-[2.5rem] border border-slate-800 bg-slate-900 shadow-2xl">
                             <table class="w-full text-left text-xs">
-                                <thead class="bg-slate-950 text-slate-500 uppercase font-black border-b border-slate-800"><tr><th class="p-6">Origin / Team</th><th class="p-6">Innovation</th><th class="p-6">Docs</th><th class="p-6 text-center">Shortlist</th></tr></thead>
+                                <thead class="bg-slate-950 text-slate-500 uppercase font-black border-b border-slate-800"><tr><th class="p-6">Submission / Team</th><th class="p-6">Solution</th><th class="p-6">Docs</th><th class="p-6 text-center">Shortlist</th></tr></thead>
                                 <tbody class="divide-y divide-slate-800">
                                     ${state.submissions.map(sub => `
                                         <tr class="hover:bg-white/5 transition">
-                                            <td class="p-6"><b>${sub.type === 'group' ? sub.teamName : sub.name}</b><br><span class="opacity-50 italic text-[10px] uppercase tracking-widest font-black text-blue-400">${sub.type === 'group' ? 'Group of 2' : (sub.dept || 'Individual')}</span></td>
+                                            <td class="p-6"><b>${sub.type === 'group' ? sub.teamName : sub.name}</b><br><span class="opacity-50 italic text-[10px] font-black text-blue-400 uppercase">${sub.type === 'group' ? 'Group of 2' : (sub.dept || 'Individual')}</span></td>
                                             <td class="p-6 font-black uppercase text-blue-100">${sub.innovationName}</td>
                                             <td class="p-6"><a href="${sub.docLink}" target="_blank" class="text-blue-500 font-black underline underline-offset-4">ACCESS</a></td>
                                             <td class="p-6 text-center">
@@ -494,72 +470,26 @@
 
         function renderModal() {
             const item = state.selectedInnovation;
-            return `
-                <div class="fixed inset-0 z-[110] bg-slate-950/98 backdrop-blur-3xl flex items-center justify-center p-6 animate-in fade-in duration-300">
-                    <div class="bg-slate-900 max-w-2xl w-full p-12 rounded-[4rem] border-2 border-blue-500/30 shadow-[0_0_100px_rgba(37,99,235,0.2)] relative max-h-[90vh] overflow-y-auto custom-card">
-                        <button onclick="closeModal()" class="absolute top-10 right-10 text-slate-500 hover:text-white transition-all hover:rotate-90"><i data-lucide="x" class="w-10 h-10"></i></button>
-                        <span class="bg-blue-600/20 text-blue-400 border border-blue-400/30 px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.2em] italic">${item.type === 'group' ? 'TEAM STRATEGY' : (item.dept || 'CORE')}</span>
-                        <h3 class="text-4xl font-black text-white italic tracking-tighter uppercase leading-tight mt-8 mb-6 break-words">${item.innovationName}</h3>
-                        
-                        <div class="space-y-4 mb-12">
-                            ${item.type === 'group' ? `
-                                <div class="flex items-center gap-3 text-slate-200 text-xs font-black uppercase tracking-widest"><i data-lucide="shield" class="text-blue-500 w-4 h-4"></i> ${item.teamName}</div>
-                                <div class="p-6 bg-black/40 rounded-3xl border border-white/5 space-y-3 shadow-inner">
-                                    <div class="flex items-center gap-3 text-slate-400 text-[10px] font-black uppercase tracking-widest"><i data-lucide="user" class="w-3 h-3"></i> ${item.member1Name} • ${item.member1Dept}</div>
-                                    <div class="flex items-center gap-3 text-slate-400 text-[10px] font-black uppercase tracking-widest"><i data-lucide="user" class="w-3 h-3"></i> ${item.member2Name} • ${item.member2Dept}</div>
-                                </div>
-                            ` : `
-                                <div class="flex items-center gap-3 text-slate-300 text-sm font-black uppercase tracking-widest"><i data-lucide="user" class="text-blue-500 w-4 h-4"></i> ${item.name} • ${item.email}</div>
-                            `}
-                        </div>
-                        
-                        <div class="bg-black/60 rounded-[2.5rem] p-10 border border-white/5 mb-12 shadow-inner">
-                            <h4 class="text-[11px] font-black text-blue-400 uppercase tracking-[0.3em] flex items-center gap-3 mb-8 italic"><i data-lucide="zap" class="w-4 h-4 fill-blue-400"></i> Analysis & Outcome</h4>
-                            <p class="text-slate-200 text-base leading-relaxed italic break-all whitespace-pre-wrap italic">"${item.achievements}"</p>
-                        </div>
-
-                        <div class="flex flex-col gap-4">
-                            <a href="${item.docLink}" target="_blank" class="bg-blue-600 hover:bg-blue-500 text-white py-6 rounded-3xl font-black text-center uppercase tracking-widest text-[11px] shadow-2xl transition active:scale-95">Download Analysis Docs <i data-lucide="external-link" class="inline w-3 h-3 ml-2"></i></a>
-                        </div>
-                    </div>
-                </div>
-            `;
+            return `<div class="fixed inset-0 z-[110] bg-slate-950/98 backdrop-blur-3xl flex items-center justify-center p-6 animate-in fade-in duration-300"><div class="bg-slate-900 max-w-2xl w-full p-12 rounded-[4rem] border-2 border-blue-500/30 shadow-[0_0_100px_rgba(37,99,235,0.2)] relative max-h-[90vh] overflow-y-auto custom-card"><button onclick="closeModal()" class="absolute top-10 right-10 text-slate-500 hover:text-white transition-all hover:rotate-90"><i data-lucide="x" class="w-10 h-10"></i></button><span class="bg-blue-600/20 text-blue-400 border border-blue-400/30 px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.2em] italic">${item.type === 'group' ? 'TEAM STRATEGY' : (item.dept || 'CORE')}</span><h3 class="text-4xl font-black text-white italic tracking-tighter uppercase leading-tight mt-8 mb-6 break-words leading-none">${item.innovationName}</h3><div class="space-y-4 mb-12">${item.type === 'group' ? `<div class="flex items-center gap-3 text-slate-200 text-xs font-black uppercase tracking-widest"><i data-lucide="shield" class="text-blue-500 w-4 h-4"></i> ${item.teamName}</div><div class="p-6 bg-black/40 rounded-3xl border border-white/5 space-y-3 shadow-inner"><div class="flex items-center gap-3 text-slate-400 text-[10px] font-black uppercase tracking-widest"><i data-lucide="user" class="w-3 h-3"></i> ${item.member1Name} • ${item.member1Dept}</div><div class="flex items-center gap-3 text-slate-400 text-[10px] font-black uppercase tracking-widest"><i data-lucide="user" class="w-3 h-3"></i> ${item.member2Name} • ${item.member2Dept}</div></div>` : `<div class="flex items-center gap-3 text-slate-300 text-sm font-black uppercase tracking-widest"><i data-lucide="user" class="text-blue-500 w-4 h-4"></i> ${item.name} • ${item.email}</div>`}</div><div class="bg-black/60 rounded-[2.5rem] p-10 border border-white/5 mb-12 shadow-inner"><h4 class="text-[11px] font-black text-blue-400 uppercase tracking-[0.3em] flex items-center gap-3 mb-8 italic"><i data-lucide="zap" class="w-4 h-4 fill-blue-400"></i> Analysis & Outcome</h4><p class="text-slate-200 text-base leading-relaxed italic break-all whitespace-pre-wrap italic leading-relaxed">"${item.achievements}"</p></div><div class="flex flex-col gap-4"><a href="${item.docLink}" target="_blank" class="bg-blue-600 hover:bg-blue-500 text-white py-6 rounded-3xl font-black text-center uppercase tracking-widest text-[11px] shadow-2xl transition active:scale-95">Review Analysis Docs <i data-lucide="external-link" class="inline w-3 h-3 ml-2"></i></a></div></div></div>`;
         }
 
         function renderAdminLogin() {
-            return `
-                <div class="fixed inset-0 z-[100] bg-slate-950/98 backdrop-blur-2xl flex items-center justify-center p-6 animate-in zoom-in duration-300">
-                    <div class="bg-slate-900 max-w-md w-full p-12 rounded-[3rem] border-2 border-slate-800 shadow-2xl text-center custom-card">
-                        <div class="w-24 h-24 bg-blue-600/10 rounded-[2rem] flex items-center justify-center mx-auto mb-10 border border-blue-500/20 shadow-inner"><i data-lucide="lock" class="text-blue-500 w-12 h-12"></i></div>
-                        <h3 class="text-3xl font-black text-white uppercase italic tracking-tighter mb-10 leading-none uppercase">Admin Verification</h3>
-                        <input type="password" id="adminCode" class="w-full bg-slate-950 border-2 border-slate-800 rounded-2xl p-5 text-center text-white outline-none focus:border-blue-600 transition-all font-mono tracking-[1em] mb-10" placeholder="••••">
-                        <div class="flex gap-4">
-                            <button onclick="toggleAdminLogin()" class="flex-1 p-5 rounded-2xl border border-slate-800 text-slate-500 font-black text-[11px] uppercase tracking-[0.2em] hover:bg-slate-800 transition">ABORT</button>
-                            <button onclick="authorizeAdmin()" class="flex-1 p-5 rounded-2xl bg-blue-600 text-white font-black text-[11px] uppercase tracking-[0.2em] hover:bg-blue-500 shadow-2xl transition active:scale-95 uppercase">VERIFY</button>
-                        </div>
-                    </div>
-                </div>
-            `;
+            return `<div class="fixed inset-0 z-[100] bg-slate-950/98 backdrop-blur-2xl flex items-center justify-center p-6 animate-in zoom-in duration-300"><div class="bg-slate-900 max-w-md w-full p-12 rounded-[3rem] border-2 border-slate-800 shadow-2xl text-center custom-card"><div class="w-24 h-24 bg-blue-600/10 rounded-[2rem] flex items-center justify-center mx-auto mb-10 border border-blue-500/20 shadow-inner"><i data-lucide="lock" class="text-blue-500 w-12 h-12"></i></div><h3 class="text-3xl font-black text-white uppercase italic tracking-tighter mb-10 leading-none uppercase">Admin Verification</h3><input type="password" id="adminCode" class="w-full bg-slate-950 border-2 border-slate-800 rounded-2xl p-5 text-center text-white outline-none focus:border-blue-600 transition-all font-mono tracking-[1em] mb-10" placeholder="••••"><div class="flex gap-4"><button onclick="toggleAdminLogin()" class="flex-1 p-5 rounded-2xl border border-slate-800 text-slate-500 font-black text-[11px] uppercase tracking-[0.2em] hover:bg-slate-800 transition">ABORT</button><button onclick="authorizeAdmin()" class="flex-1 p-5 rounded-2xl bg-blue-600 text-white font-black text-[11px] uppercase tracking-[0.2em] hover:bg-blue-500 shadow-2xl transition active:scale-95 uppercase">VERIFY</button></div></div></div>`;
         }
 
-        // --- Controller Logic ---
+        // --- Logic Handlers ---
         function navigate(tab) { state.activeTab = tab; updateUI(); }
         function toggleAdminLogin() { state.showAdminLogin = !state.showAdminLogin; updateUI(); }
-        
         async function authorizeAdmin() { 
             const input = document.getElementById('adminCode').value;
             if (!input) return;
             const hashedInput = await sha256(input);
             if (hashedInput === ADMIN_HASH) { 
-                state.isAdmin = true; 
-                state.showAdminLogin = false; 
-                state.activeTab = 'admin'; 
-                updateUI();
+                state.isAdmin = true; state.showAdminLogin = false; state.activeTab = 'admin'; updateUI();
             } else {
-                alert("Unauthorized Access. Admin credentials invalid.");
+                alert("Unauthorized Access.");
             }
         }
-
         function closeModal() { state.selectedInnovation = null; updateUI(); }
         function showDetails(id) { state.selectedInnovation = state.submissions.find(s => s.id === id); updateUI(); }
         function setSubmissionType(type) { state.submissionType = type; updateUI(); }
@@ -577,14 +507,9 @@
             const data = state.formData;
             try {
                 await db.collection('artifacts').doc(STABLE_APP_ID).collection('public').doc('data').collection('submissions').add({
-                    ...data,
-                    type: state.submissionType,
-                    shortlisted: false,
-                    timestamp: new Date().toISOString()
+                    ...data, name: state.user.displayName, email: state.user.email, type: state.submissionType, shortlisted: false, timestamp: new Date().toISOString()
                 });
-                state.formData = {}; 
-                state.activeTab = 'gallery';
-                updateUI();
+                state.formData = {}; state.activeTab = 'gallery'; updateUI();
             } catch (err) { console.error(err); }
         }
 
@@ -595,13 +520,11 @@
                 await db.collection('artifacts').doc(STABLE_APP_ID).collection('public').doc('data').collection('ideas').add({
                     ...data, name: state.user.displayName, email: state.user.email, timestamp: new Date().toISOString()
                 });
-                state.ideaData = {};
-                alert("AI Concept recorded. Synchronised with Cloud Engine.");
-                updateUI();
+                state.ideaData = {}; alert("Idea synchronised with team logs!"); updateUI();
             } catch (err) { console.error(err); }
         }
 
-        // --- Identity Persistence Layer ---
+        // --- Identity Persistence ---
         auth.onAuthStateChanged(async (user) => {
             if (user) {
                 if (user.email.toLowerCase().endsWith('@descasio.io')) {
@@ -610,30 +533,32 @@
                     updateCountdown();
                     setInterval(() => { updateCountdown(); updateUI(); }, 30000);
 
+                    // Real-time Listeners
                     db.collection('artifacts').doc(STABLE_APP_ID).collection('public').doc('data').collection('submissions')
                       .onSnapshot((snapshot) => {
                         state.submissions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                         state.submissions.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
                         updateUI();
-                      }, (err) => console.error("Sync Error:", err));
+                      }, (err) => console.error("Sync Failure:", err));
 
                     db.collection('artifacts').doc(STABLE_APP_ID).collection('public').doc('data').collection('ideas')
                       .onSnapshot((snapshot) => {
                         state.ideas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                         state.ideas.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
                         updateUI();
-                      }, (err) => console.error("Idea Sync Error:", err));
+                      }, (err) => console.error("Idea Sync Failure:", err));
                 } else {
                     await auth.signOut();
-                    state.authError = "Restricted: @descasio.io corporate email required.";
+                    state.authError = "Restricted: @descasio.io email required.";
                     state.user = null;
                     state.isAuthenticating = false;
                     renderLogin();
                 }
             } else {
                 state.user = null;
-                // If we aren't authenticating, stop loading and show login after 1s
-                setTimeout(() => { if (!state.user && !state.isAuthenticating) renderLogin(); }, 1000);
+                // If the user isn't authenticated within 1 second of loading, show the login screen
+                // This breaks the "infinite loading" loop
+                setTimeout(() => { if (!state.user && !state.isAuthenticating) renderLogin(); }, 1200);
             }
         });
     </script>
