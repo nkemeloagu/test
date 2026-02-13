@@ -47,7 +47,7 @@
 
     <div id="app">
         <div class="flex flex-col items-center justify-center min-h-screen">
-            <div class="animate-pulse text-slate-500 font-bold tracking-widest uppercase italic mb-4">Verifying Identity...</div>
+            <div class="animate-pulse text-slate-500 font-bold tracking-widest uppercase italic mb-4">Initialising Descasio Hub...</div>
             <div class="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
         </div>
     </div>
@@ -106,7 +106,7 @@
 
         const EXTERNAL_VOTING_URL = "https://surveymars.com/q/7JKogeul9";
 
-        // --- Security Hashing ---
+        // --- Security Hashing Utility ---
         async function sha256(message) {
             const msgBuffer = new TextEncoder().encode(message);
             const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
@@ -160,12 +160,11 @@
                                 class="w-full bg-white text-slate-950 font-black py-5 rounded-2xl flex items-center justify-center gap-3 hover:scale-[1.02] transition shadow-2xl tracking-widest uppercase text-xs active:scale-95 disabled:opacity-50"
                                 ${state.isAuthenticating ? 'disabled' : ''}>
                             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5 h-5">
-                            ${state.isAuthenticating ? 'Redirecting...' : 'Sign in with Google'}
+                            ${state.isAuthenticating ? 'Authenticating...' : 'Sign in with Google'}
                         </button>
                         
                         <div class="space-y-2">
                             <p class="text-[9px] text-slate-500 font-black uppercase tracking-widest">Secure Cloud Gateway</p>
-                            <p class="text-[8px] text-slate-600 italic">If redirect fails, ensure 'Identity Toolkit API' is enabled in Google Console.</p>
                         </div>
                     </div>
                 </div>
@@ -177,14 +176,26 @@
             state.isAuthenticating = true;
             state.authError = null;
             updateUI();
+            
             const provider = new firebase.auth.GoogleAuthProvider();
+            // Optional: force account selection
+            provider.setCustomParameters({ prompt: 'select_account' });
+
             try {
-                // Switching to Redirect method as popups are often blocked or fail on corporate domains
-                await auth.signInWithRedirect(provider);
+                // If on GitHub Pages, Popup is usually more successful than redirect which can hang
+                const result = await auth.signInWithPopup(provider);
+                const user = result.user;
+                if (!user.email.toLowerCase().endsWith('@descasio.io')) {
+                    await auth.signOut();
+                    state.authError = "Restricted to @descasio.io domains.";
+                    state.isAuthenticating = false;
+                    renderLogin();
+                }
             } catch (error) {
+                console.error("Auth Error:", error);
                 state.isAuthenticating = false;
-                state.authError = `Login failed (${error.code}). Check Firebase settings.`;
-                updateUI();
+                state.authError = "Auth failed. Ensure popups are allowed or try a different browser.";
+                renderLogin();
             }
         }
 
@@ -300,8 +311,8 @@
                                 <div class="bg-slate-900 p-6 rounded-3xl border border-slate-800 hover:border-blue-500/30 transition-all group">
                                     <div class="flex items-center gap-2 text-blue-500 mb-4"><i data-lucide="lightbulb" class="w-4 h-4"></i> <span class="text-[10px] font-black uppercase tracking-widest">Concept</span></div>
                                     <h4 class="text-white font-black text-lg mb-2 uppercase leading-tight group-hover:text-blue-400 transition-colors">${idea.title}</h4>
-                                    <p class="text-slate-400 text-sm italic line-clamp-4 italic break-all">"${idea.description}"</p>
-                                    <div class="mt-6 pt-4 border-t border-slate-800 text-[9px] font-black text-slate-500 uppercase tracking-widest">By ${idea.name || 'Anonymous'}</div>
+                                    <p class="text-slate-400 text-sm italic line-clamp-4 italic break-all italic">"${idea.description}"</p>
+                                    <div class="mt-6 pt-4 border-t border-slate-800 text-[9px] font-black text-slate-500 uppercase tracking-widest italic">By ${idea.name || 'Anonymous'}</div>
                                 </div>
                             `).join('')}
                         </div>
@@ -312,7 +323,7 @@
             if (state.activeTab === 'challenge') {
                 return `
                     <div class="max-w-4xl mx-auto space-y-12 animate-in slide-in-from-bottom duration-500">
-                        <div class="border-b border-slate-800 pb-8 text-center"><h2 class="text-4xl font-black mb-4 text-white uppercase italic tracking-tighter">Challenge Detail</h2><p class="text-slate-400 text-lg opacity-70">Design AI workflows to streamline acquisitions and onboarding.</p></div>
+                        <div class="border-b border-slate-800 pb-8 text-center"><h2 class="text-4xl font-black mb-4 text-white uppercase italic tracking-tighter">Challenge Detail</h2><p class="text-slate-400 text-lg opacity-70 italic">Design AI workflows to streamline acquisitions and onboarding.</p></div>
                         
                         <div class="grid grid-cols-3 gap-6">
                             <div class="bg-slate-900 border border-slate-800 p-10 rounded-[2rem] text-center shadow-xl">
@@ -332,9 +343,9 @@
                         <div class="bg-slate-900 border border-slate-800 p-8 rounded-3xl shadow-xl">
                             <h3 class="text-2xl font-black text-white mb-6 uppercase flex items-center gap-3"><i data-lucide="check-circle" class="text-emerald-500"></i> Monthly Key Criteria</h3>
                             <ul class="space-y-4 text-slate-300 text-sm font-medium">
-                                <li class="flex items-start gap-3"><i data-lucide="chevron-right" class="text-blue-500 w-4 h-4 mt-0.5"></i> Primary focus: Improving the 'speed-to-value' for new enterprise clients.</li>
-                                <li class="flex items-start gap-3"><i data-lucide="chevron-right" class="text-blue-500 w-4 h-4 mt-0.5"></i> Automation depth: The agent must handle at least 3 distinct stages of the onboarding workflow.</li>
-                                <li class="flex items-start gap-3"><i data-lucide="chevron-right" class="text-blue-500 w-4 h-4 mt-0.5"></i> Scalability: Solution must be easily adaptable across multiple departments.</li>
+                                <li class="flex items-start gap-3 italic"><i data-lucide="chevron-right" class="text-blue-500 w-4 h-4 mt-0.5"></i> Primary focus: Improving the 'speed-to-value' for new enterprise clients.</li>
+                                <li class="flex items-start gap-3 italic"><i data-lucide="chevron-right" class="text-blue-500 w-4 h-4 mt-0.5"></i> Automation depth: The agent must handle at least 3 distinct stages of the onboarding workflow.</li>
+                                <li class="flex items-start gap-3 italic"><i data-lucide="chevron-right" class="text-blue-500 w-4 h-4 mt-0.5"></i> Scalability: Solution must be easily adaptable across multiple departments.</li>
                             </ul>
                         </div>
 
@@ -342,8 +353,8 @@
                             <h3 class="text-3xl font-black text-white mb-10 italic uppercase tracking-tighter flex items-center gap-3"><i data-lucide="plus-circle" class="text-blue-500"></i> Share Your Innovation</h3>
                             
                             <div class="flex gap-4 mb-10 bg-slate-950 p-2 rounded-2xl border border-slate-800 max-w-md">
-                                <button onclick="setSubmissionType('individual')" class="flex-1 py-3 rounded-xl font-black text-[10px] uppercase transition-all ${state.submissionType === 'individual' ? 'bg-blue-600 text-white' : 'text-slate-500'}">Individual</button>
-                                <button onclick="setSubmissionType('group')" class="flex-1 py-3 rounded-xl font-black text-[10px] uppercase transition-all ${state.submissionType === 'group' ? 'bg-blue-600 text-white' : 'text-slate-500'}">Group (Team of 2)</button>
+                                <button onclick="setSubmissionType('individual')" class="flex-1 py-3 rounded-xl font-black text-[10px] uppercase transition-all ${state.submissionType === 'individual' ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/30' : 'text-slate-500 hover:text-white'}">Individual</button>
+                                <button onclick="setSubmissionType('group')" class="flex-1 py-3 rounded-xl font-black text-[10px] uppercase transition-all ${state.submissionType === 'group' ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/30' : 'text-slate-500 hover:text-white'}">Group (Team of 2)</button>
                             </div>
 
                             <form onsubmit="handleFormSubmit(event)" class="space-y-8">
@@ -371,7 +382,7 @@
                                             <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Team Name</label>
                                             <input required oninput="handleFormInput('formData', 'teamName', this.value)" value="${state.formData.teamName || ''}" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-black uppercase italic" placeholder="THE DESCASIO AVENGERS">
                                         </div>
-                                        <div class="grid md:grid-cols-2 gap-6 p-8 bg-slate-950 rounded-3xl border border-slate-800">
+                                        <div class="grid md:grid-cols-2 gap-6 p-8 bg-slate-950 rounded-3xl border border-slate-800 shadow-inner">
                                             <div class="col-span-full border-b border-slate-800 pb-3 mb-3"><span class="text-[10px] font-black text-blue-500 uppercase tracking-[0.2em]">Team Member 01</span></div>
                                             <input required oninput="handleFormInput('formData', 'member1Name', this.value)" value="${state.formData.member1Name || ''}" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-1 ring-blue-600 font-bold" placeholder="Name">
                                             <input required oninput="handleFormInput('formData', 'member1Email', this.value)" value="${state.formData.member1Email || ''}" type="email" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-1 ring-blue-600 font-bold" placeholder="Email">
@@ -380,7 +391,7 @@
                                                 ${DEPARTMENTS.map(d => `<option value="${d}" ${state.formData.member1Dept === d ? 'selected' : ''}>${d}</option>`).join('')}
                                             </select>
                                         </div>
-                                        <div class="grid md:grid-cols-2 gap-6 p-8 bg-slate-950 rounded-3xl border border-slate-800">
+                                        <div class="grid md:grid-cols-2 gap-6 p-8 bg-slate-950 rounded-3xl border border-slate-800 shadow-inner">
                                             <div class="col-span-full border-b border-slate-800 pb-3 mb-3"><span class="text-[10px] font-black text-blue-500 uppercase tracking-[0.2em]">Team Member 02</span></div>
                                             <input required oninput="handleFormInput('formData', 'member2Name', this.value)" value="${state.formData.member2Name || ''}" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-1 ring-blue-600 font-bold" placeholder="Name">
                                             <input required oninput="handleFormInput('formData', 'member2Email', this.value)" value="${state.formData.member2Email || ''}" type="email" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-1 ring-blue-600 font-bold" placeholder="Email">
@@ -394,7 +405,7 @@
                                 <div class="pt-10 border-t border-slate-800 space-y-8">
                                     <input required oninput="handleFormInput('formData', 'innovationName', this.value)" value="${state.formData.innovationName || ''}" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-bold" placeholder="Innovation Name">
                                     <input required oninput="handleFormInput('formData', 'docLink', this.value)" value="${state.formData.docLink || ''}" type="url" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-mono text-xs italic" placeholder="https://...">
-                                    <textarea required oninput="handleFormInput('formData', 'achievements', this.value)" rows="6" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 text-sm font-medium" placeholder="Summary...">${state.formData.achievements || ''}</textarea>
+                                    <textarea required oninput="handleFormInput('formData', 'achievements', this.value)" rows="6" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 text-sm font-medium" placeholder="Summary of impact...">${state.formData.achievements || ''}</textarea>
                                 </div>
                                 <div id="formStatus"></div>
                                 <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-6 rounded-2xl transition shadow-2xl uppercase tracking-[0.2em] active:scale-[0.98]">Broadcast Innovation to Cloud Hub</button>
@@ -417,15 +428,14 @@
                             </div>
                             <div class="grid md:grid-cols-3 gap-8">
                                 ${shortlisted.map(item => `
-                                    <div class="bg-slate-900 border-2 border-blue-500/20 rounded-[2.5rem] p-8 flex flex-col h-full bg-blue-500/5">
+                                    <div class="bg-slate-900 border-2 border-blue-500/20 rounded-[2.5rem] p-8 flex flex-col h-full bg-blue-500/5 shadow-2xl group transition-all hover:border-blue-500/50">
                                         <div class="flex justify-between items-center mb-8"><span class="bg-blue-600/20 text-blue-400 border border-blue-400/30 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest">${item.type === 'group' ? 'TEAM' : (item.dept || 'INNOVATION')}</span></div>
                                         <h3 class="text-2xl font-black text-white mb-3 uppercase leading-tight italic tracking-tighter group-hover:text-blue-400 transition-colors">${item.innovationName}</h3>
                                         <p class="text-slate-500 text-[10px] mb-8 uppercase tracking-[0.2em] font-black">BY ${item.type === 'group' ? item.teamName : item.name}</p>
-                                        <button onclick="showDetails('${item.id}')" class="w-full text-left bg-slate-950/60 rounded-3xl p-6 border border-white/5 mb-8 hover:border-blue-500/40 transition-all overflow-hidden group-hover:shadow-inner">
-                                            <p class="text-xs text-slate-300 leading-relaxed line-clamp-4 break-all italic">"${item.achievements}"</p>
-                                            <div class="text-[9px] font-black text-blue-500/50 mt-4 uppercase underline underline-offset-4 tracking-widest group-hover:text-blue-400 transition-colors italic">Review Analysis...</div>
+                                        <button onclick="showDetails('${item.id}')" class="w-full text-left bg-slate-950/60 rounded-3xl p-6 border border-white/5 mb-8 transition-all overflow-hidden group-hover:shadow-inner hover:border-blue-500/30">
+                                            <p class="text-xs text-slate-300 line-clamp-4 break-all italic italic leading-relaxed">"${item.achievements}"</p>
                                         </button>
-                                        <div class="mt-auto pt-6 border-t border-slate-800 text-center"><p class="text-[9px] font-black text-slate-600 uppercase tracking-[0.3em]">Verified Solution Entry</p></div>
+                                        <div class="mt-auto pt-6 border-t border-slate-800 text-center"><p class="text-[9px] font-black text-slate-600 uppercase tracking-[0.3em] italic">Verified Solution Entry</p></div>
                                     </div>
                                 `).join('')}
                                 ${shortlisted.length === 0 ? '<div class="col-span-full py-24 text-center border-2 border-dashed border-slate-800 rounded-[3rem] italic text-slate-600 font-black uppercase tracking-[0.2em]">Admin verification in progress...</div>' : ''}
@@ -435,12 +445,12 @@
                             <h2 class="text-2xl font-black text-slate-400 flex items-center gap-4 italic tracking-tighter uppercase leading-none"><i data-lucide="users" class="text-slate-600"></i> Submission Feed</h2>
                             <div class="grid md:grid-cols-3 gap-6">
                                 ${state.submissions.map(item => `
-                                    <div class="bg-slate-900/30 border border-slate-800/50 rounded-[2rem] p-6 flex flex-col h-full">
+                                    <div class="bg-slate-900/30 border border-slate-800/50 rounded-[2rem] p-6 flex flex-col h-full hover:border-slate-700 transition-all">
                                         <div class="flex justify-between items-center mb-6"><span class="text-[10px] font-black uppercase text-slate-500 tracking-widest">${item.type === 'group' ? 'GROUP' : (item.dept || 'GEN')}</span></div>
-                                        <h4 class="text-white font-black text-sm mb-4 uppercase tracking-tight">${item.innovationName}</h4>
+                                        <h4 class="text-white font-black text-sm mb-4 uppercase tracking-tight truncate">${item.innovationName}</h4>
                                         <div class="mt-auto flex items-center justify-between pt-4 border-t border-slate-800/50">
                                             <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest truncate max-w-[120px]">${item.type === 'group' ? item.teamName : item.name}</p>
-                                            <a href="${item.docLink}" target="_blank" class="text-blue-500"><i data-lucide="external-link" class="w-4 h-4"></i></a>
+                                            <a href="${item.docLink}" target="_blank" class="text-blue-500 hover:text-blue-400"><i data-lucide="external-link" class="w-4 h-4"></i></a>
                                         </div>
                                     </div>
                                 `).join('')}
@@ -451,27 +461,7 @@
             }
 
             if (state.activeTab === 'winners') {
-                return `
-                    <div class="max-w-6xl mx-auto space-y-12 animate-in zoom-in-95 duration-500">
-                        <div class="text-center">
-                            <h2 class="text-5xl font-black text-white italic tracking-tighter uppercase leading-none">Hall of Fame</h2>
-                            <p class="text-slate-500 font-bold uppercase tracking-[0.2em] text-[10px] mt-4 italic underline underline-offset-8 decoration-blue-500/50">Celebrating the AI Transformation Journey</p>
-                        </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                            ${MONTHLY_RECORDS.map(item => `
-                                <div class="bg-slate-900 rounded-[2.5rem] p-10 border-2 ${item.status === 'active' ? 'border-blue-500 shadow-blue-900/40 shadow-2xl' : 'border-slate-800'} relative overflow-hidden">
-                                    <div class="flex justify-between items-start mb-8">
-                                        <span class="text-slate-500 font-black text-xs uppercase tracking-[0.2em]">${item.month}</span>
-                                        ${item.status === 'completed' ? '<i data-lucide="medal" class="text-yellow-500 w-8 h-8"></i>' : item.status === 'active' ? '<div class="w-3 h-3 rounded-full bg-blue-500 animate-ping"></div>' : ''}
-                                    </div>
-                                    <div class="py-16 flex flex-col items-center justify-center border-2 border-dashed border-slate-800 rounded-[2.5rem]">
-                                        <p class="text-slate-700 font-black text-xs uppercase tracking-widest italic">${item.status === 'active' ? 'HUNT IN PROGRESS' : 'UPCOMING'}</p>
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                `;
+                return `<div class="max-w-6xl mx-auto space-y-12 animate-in zoom-in-95 duration-500"><div class="text-center"><h2 class="text-5xl font-black text-white italic tracking-tighter uppercase leading-none">Hall of Fame</h2></div><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">${MONTHLY_RECORDS.map(item => `<div class="bg-slate-900 rounded-[2.5rem] p-10 border-2 ${item.status === 'active' ? 'border-blue-500 shadow-blue-900/40 shadow-2xl' : 'border-slate-800'} relative overflow-hidden"><div class="flex justify-between items-start mb-8"><span class="text-slate-500 font-black text-xs uppercase tracking-[0.2em]">${item.month}</span>${item.status === 'completed' ? '<i data-lucide="medal" class="text-yellow-500 w-8 h-8"></i>' : item.status === 'active' ? '<div class="w-3 h-3 rounded-full bg-blue-500 animate-ping"></div>' : ''}</div><div class="py-16 flex flex-col items-center justify-center border-2 border-dashed border-slate-800 rounded-[2.5rem]"><p class="text-slate-700 font-black text-xs uppercase tracking-widest italic">${item.status === 'active' ? 'HUNT IN PROGRESS' : 'UPCOMING'}</p></div></div>`).join('')}</div></div>`;
             }
 
             if (state.activeTab === 'admin') {
@@ -509,7 +499,7 @@
                     <div class="bg-slate-900 max-w-2xl w-full p-12 rounded-[4rem] border-2 border-blue-500/30 shadow-[0_0_100px_rgba(37,99,235,0.2)] relative max-h-[90vh] overflow-y-auto custom-card">
                         <button onclick="closeModal()" class="absolute top-10 right-10 text-slate-500 hover:text-white transition-all hover:rotate-90"><i data-lucide="x" class="w-10 h-10"></i></button>
                         <span class="bg-blue-600/20 text-blue-400 border border-blue-400/30 px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.2em] italic">${item.type === 'group' ? 'TEAM STRATEGY' : (item.dept || 'CORE')}</span>
-                        <h3 class="text-4xl font-black text-white italic tracking-tighter uppercase leading-tight mt-8 mb-6">${item.innovationName}</h3>
+                        <h3 class="text-4xl font-black text-white italic tracking-tighter uppercase leading-tight mt-8 mb-6 break-words">${item.innovationName}</h3>
                         
                         <div class="space-y-4 mb-12">
                             ${item.type === 'group' ? `
@@ -524,12 +514,12 @@
                         </div>
                         
                         <div class="bg-black/60 rounded-[2.5rem] p-10 border border-white/5 mb-12 shadow-inner">
-                            <h4 class="text-[11px] font-black text-blue-400 uppercase tracking-[0.3em] flex items-center gap-3 mb-8"><i data-lucide="zap" class="w-4 h-4 fill-blue-400"></i> Strategic Analysis</h4>
+                            <h4 class="text-[11px] font-black text-blue-400 uppercase tracking-[0.3em] flex items-center gap-3 mb-8 italic"><i data-lucide="zap" class="w-4 h-4 fill-blue-400"></i> Analysis & Outcome</h4>
                             <p class="text-slate-200 text-base leading-relaxed italic break-all whitespace-pre-wrap italic">"${item.achievements}"</p>
                         </div>
 
                         <div class="flex flex-col gap-4">
-                            <a href="${item.docLink}" target="_blank" class="bg-blue-600 hover:bg-blue-500 text-white py-6 rounded-3xl font-black text-center uppercase tracking-widest text-[11px] shadow-2xl transition active:scale-95">Download Core Documentation <i data-lucide="external-link" class="inline w-3 h-3 ml-2"></i></a>
+                            <a href="${item.docLink}" target="_blank" class="bg-blue-600 hover:bg-blue-500 text-white py-6 rounded-3xl font-black text-center uppercase tracking-widest text-[11px] shadow-2xl transition active:scale-95">Download Analysis Docs <i data-lucide="external-link" class="inline w-3 h-3 ml-2"></i></a>
                         </div>
                     </div>
                 </div>
@@ -541,11 +531,11 @@
                 <div class="fixed inset-0 z-[100] bg-slate-950/98 backdrop-blur-2xl flex items-center justify-center p-6 animate-in zoom-in duration-300">
                     <div class="bg-slate-900 max-w-md w-full p-12 rounded-[3rem] border-2 border-slate-800 shadow-2xl text-center custom-card">
                         <div class="w-24 h-24 bg-blue-600/10 rounded-[2rem] flex items-center justify-center mx-auto mb-10 border border-blue-500/20 shadow-inner"><i data-lucide="lock" class="text-blue-500 w-12 h-12"></i></div>
-                        <h3 class="text-3xl font-black text-white uppercase italic tracking-tighter mb-10 leading-none">Admin Authority Verification</h3>
+                        <h3 class="text-3xl font-black text-white uppercase italic tracking-tighter mb-10 leading-none uppercase">Admin Verification</h3>
                         <input type="password" id="adminCode" class="w-full bg-slate-950 border-2 border-slate-800 rounded-2xl p-5 text-center text-white outline-none focus:border-blue-600 transition-all font-mono tracking-[1em] mb-10" placeholder="••••">
                         <div class="flex gap-4">
                             <button onclick="toggleAdminLogin()" class="flex-1 p-5 rounded-2xl border border-slate-800 text-slate-500 font-black text-[11px] uppercase tracking-[0.2em] hover:bg-slate-800 transition">ABORT</button>
-                            <button onclick="authorizeAdmin()" class="flex-1 p-5 rounded-2xl bg-blue-600 text-white font-black text-[11px] uppercase tracking-[0.2em] hover:bg-blue-500 shadow-2xl transition active:scale-95">VERIFY</button>
+                            <button onclick="authorizeAdmin()" class="flex-1 p-5 rounded-2xl bg-blue-600 text-white font-black text-[11px] uppercase tracking-[0.2em] hover:bg-blue-500 shadow-2xl transition active:scale-95 uppercase">VERIFY</button>
                         </div>
                     </div>
                 </div>
@@ -566,7 +556,7 @@
                 state.activeTab = 'admin'; 
                 updateUI();
             } else {
-                alert("Authorization Denied. Access restricted to innovation admins.");
+                alert("Unauthorized Access. Admin credentials invalid.");
             }
         }
 
@@ -606,56 +596,44 @@
                     ...data, name: state.user.displayName, email: state.user.email, timestamp: new Date().toISOString()
                 });
                 state.ideaData = {};
-                alert("AI Concept recorded with team identity!");
+                alert("AI Concept recorded. Synchronised with Cloud Engine.");
                 updateUI();
             } catch (err) { console.error(err); }
         }
 
-        // --- Identity Layer ---
+        // --- Identity Persistence Layer ---
         auth.onAuthStateChanged(async (user) => {
             if (user) {
-                // Domain Enforcement
                 if (user.email.toLowerCase().endsWith('@descasio.io')) {
                     state.user = user;
                     state.isAuthenticating = false;
                     updateCountdown();
                     setInterval(() => { updateCountdown(); updateUI(); }, 30000);
 
-                    // Sync Submissions
                     db.collection('artifacts').doc(STABLE_APP_ID).collection('public').doc('data').collection('submissions')
                       .onSnapshot((snapshot) => {
                         state.submissions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                         state.submissions.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
                         updateUI();
-                      }, (err) => console.error(err));
+                      }, (err) => console.error("Sync Error:", err));
 
-                    // Sync Ideas
                     db.collection('artifacts').doc(STABLE_APP_ID).collection('public').doc('data').collection('ideas')
                       .onSnapshot((snapshot) => {
                         state.ideas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                         state.ideas.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
                         updateUI();
-                      }, (err) => console.error(err));
+                      }, (err) => console.error("Idea Sync Error:", err));
                 } else {
                     await auth.signOut();
-                    state.authError = "Restricted: Please use your @descasio.io email.";
+                    state.authError = "Restricted: @descasio.io corporate email required.";
                     state.user = null;
                     state.isAuthenticating = false;
-                    updateUI();
+                    renderLogin();
                 }
             } else {
                 state.user = null;
-                state.isAuthenticating = false;
-                // Handle the incoming redirect result to check for specific error codes
-                auth.getRedirectResult().then((result) => {
-                    if (!result.user && !state.user) {
-                        renderLogin();
-                    }
-                }).catch((error) => {
-                    console.error("Redirect Result Error:", error);
-                    state.authError = `Gateway Error: ${error.message}`;
-                    renderLogin();
-                });
+                // If we aren't authenticating, stop loading and show login after 1s
+                setTimeout(() => { if (!state.user && !state.isAuthenticating) renderLogin(); }, 1000);
             }
         });
     </script>
