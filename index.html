@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-5KTSDYSV96"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-5KTSDYSV96');
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DESCASIO | Innovation Hub</title>
@@ -16,6 +24,8 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <!-- EmailJS SDK -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
@@ -41,19 +51,21 @@
             70% { box-shadow: 0 0 0 15px rgba(124, 58, 237, 0); }
             100% { box-shadow: 0 0 0 0 rgba(124, 58, 237, 0); }
         }
+        .highlight-text { color: #60a5fa; font-weight: 600; }
     </style>
 </head>
 <body class="selection:bg-blue-500/30">
 
     <div id="app">
-        <!-- Initial view is a simple, non-blocking splash to prevent infinite loading -->
-        <div class="flex flex-col items-center justify-center min-h-screen">
-            <div class="animate-pulse text-slate-500 font-bold tracking-widest uppercase italic mb-4">Establishing Secure Connection...</div>
-            <div class="w-10 h-10 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+        <div class="flex items-center justify-center min-h-screen">
+            <div class="animate-pulse text-slate-500 font-bold tracking-widest uppercase italic">Initializing Cloud Hub...</div>
         </div>
     </div>
 
     <script>
+        // --- EmailJS Initialization ---
+        emailjs.init("LF76ppQ83bSQ3ggtK");
+
         // --- Firebase Configuration ---
         const firebaseConfig = {
             apiKey: "AIzaSyBrRmGnPm3WcK2GKQqN_lAEvJJZPgXVdxw",
@@ -69,15 +81,16 @@
         const db = firebase.firestore();
         const STABLE_APP_ID = "descasio-innovation-hub-perpetual";
 
-        // --- Data & Constants ---
+        // --- Data & State ---
         const DEPARTMENTS = ["Finance", "Sales", "Customer Success", "HR/Admin", "Marketing", "Strategy", "Product", "Software Engineering", "Technology Services"];
-        const PREVIOUS_WINNER = { name: "Femi Olugbesan", dept: "CIO", title: "Enterprise AI Strategy Framework", month: "April", avatar: "FO" };
-        const ADMIN_HASH = "b36c46927d6d376166115995738879685718a7b9736882679237667950893541"; // Hash of $98#2
+        const PREVIOUS_WINNER = { name: "Femi Olugbesan", dept: "CIO", title: "Champioining AI", month: "April", avatar: "FO" };
+        
+        let ADMIN_HASH = "e28f7db64cfc2056566ea88b8100b9969be70080f868590301d4f0005c536d30"; 
 
         const MONTHLY_RECORDS = [
-            { month: "March", winner: null, solution: null, status: "upcoming" },
+            { month: "March", winner: null, solution: null, status: "active" },
             { month: "April", winner: null, solution: null, status: "upcoming" },
-            { month: "May", winner: null, solution: null, status: "active" },
+            { month: "May", winner: null, solution: null, status: "upcoming" },
             { month: "June", winner: null, solution: null, status: "upcoming" },
             { month: "July", winner: null, solution: null, status: "upcoming" },
             { month: "August", winner: null, solution: null, status: "upcoming" },
@@ -87,9 +100,13 @@
             { month: "December", winner: null, solution: null, status: "upcoming" },
         ];
 
-        // --- Application State ---
         let state = {
             user: null,
+            isAuthenticated: false,
+            gatewayView: 'email', 
+            authEmail: '',
+            generatedOtp: null,
+            otpExpiry: null,
             activeTab: 'dashboard',
             submissionType: 'individual',
             submissions: [],
@@ -100,100 +117,100 @@
             timeLeft: { days: 0, hours: 0, mins: 0, label: "HUNT ENDS" },
             formData: {},
             ideaData: {},
-            authError: null,
-            isAuthenticating: false
+            loading: false
         };
 
         const EXTERNAL_VOTING_URL = "https://surveymars.com/q/7JKogeul9";
 
-        // --- Security Utils ---
-        async function sha256(message) {
-            const msgBuffer = new TextEncoder().encode(message);
-            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+        // --- Helper for Hashing ---
+        async function hashString(str) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(str);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
             const hashArray = Array.from(new Uint8Array(hashBuffer));
             return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        // --- Authentication Logic ---
+        async function requestOtp() {
+            const email = document.getElementById('gatewayEmail').value.trim().toLowerCase();
+            if (!email.endsWith('@descasio.io')) {
+                showGatewayError("Access restricted to @descasio.io email addresses.");
+                return;
+            }
+
+            state.loading = true;
+            updateUI();
+
+            const otp = Math.floor(100000 + Math.random() * 900000).toString();
+            const expiry = Date.now() + (60 * 60 * 1000); 
+
+            try {
+                await emailjs.send("service_v9ysmxt", "template_20x7ujf", {
+                    to_email: email,
+                    otp_code: otp
+                });
+                state.authEmail = email;
+                state.generatedOtp = otp;
+                state.otpExpiry = expiry;
+                state.gatewayView = 'otp';
+                state.loading = false;
+                updateUI();
+            } catch (err) {
+                console.error(err);
+                showGatewayError("Failed to send code. Please check your connection.");
+                state.loading = false;
+                updateUI();
+            }
+        }
+
+        function verifyOtp() {
+            const entered = document.getElementById('gatewayOtp').value.trim();
+            if (Date.now() > state.otpExpiry) {
+                showGatewayError("Code has expired. Please request a new one.");
+                return;
+            }
+            if (entered === state.generatedOtp) {
+                state.isAuthenticated = true;
+                updateUI();
+            } else {
+                showGatewayError("Invalid access code.");
+            }
+        }
+
+        function showGatewayError(msg) {
+            const errEl = document.getElementById('gatewayError');
+            if (errEl) {
+                errEl.innerText = msg;
+                errEl.classList.remove('hidden');
+            }
         }
 
         // --- Countdown Logic ---
         function updateCountdown() {
             const now = new Date();
-            const year = now.getFullYear();
-            const month = now.getMonth();
-            const startOfWindow = new Date(year, month, 1, 0, 0, 0);
-            const endOfWindow = new Date(year, month, 20, 23, 59, 59);
-            let targetDate, label;
-
-            if (now < startOfWindow) { targetDate = startOfWindow; label = "STARTS IN"; }
-            else if (now <= endOfWindow) { targetDate = endOfWindow; label = "ENDS IN"; }
-            else { targetDate = new Date(year, month + 1, 1, 0, 0, 0); label = "NEXT HUB IN"; }
-
+            const targetDate = new Date(2026, 2, 24, 23, 59, 59); 
             const diff = targetDate - now;
-            state.timeLeft = {
-                days: Math.floor(diff / (1000 * 60 * 60 * 24)),
-                hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
-                mins: Math.floor((diff / 1000 / 60) % 60),
-                label: label
-            };
-        }
-
-        // --- UI Rendering ---
-        function renderLogin() {
-            const app = document.getElementById('app');
-            app.innerHTML = `
-                <div class="min-h-screen hero-gradient flex items-center justify-center p-6">
-                    <div class="bg-slate-900/60 backdrop-blur-3xl border border-white/10 p-12 rounded-[3rem] shadow-2xl max-w-md w-full text-center space-y-8 animate-in zoom-in-95">
-                        <div class="w-20 h-20 bg-blue-700 rounded-3xl flex items-center justify-center mx-auto shadow-2xl shadow-blue-900/40 border-2 border-white/10">
-                            <i data-lucide="zap" class="text-white w-10 h-10"></i>
-                        </div>
-                        <div>
-                            <h1 class="text-4xl font-black tracking-tighter text-white uppercase italic leading-none">DESCASIO</h1>
-                            <p class="text-[10px] text-blue-400 font-bold tracking-[0.3em] uppercase mt-2">Innovation Hub Submissions</p>
-                        </div>
-                        <p class="text-slate-300 text-sm italic leading-relaxed">Corporate Single Sign-On required.<br>Please sign in with your @descasio.io Google account.</p>
-                        
-                        ${state.authError ? `<div class="bg-red-500/10 border border-red-500/20 p-4 rounded-xl text-red-400 text-[10px] font-bold uppercase tracking-widest leading-relaxed">${state.authError}</div>` : ''}
-
-                        <button onclick="handleGoogleLogin()" 
-                                class="w-full bg-white text-slate-950 font-black py-5 rounded-2xl flex items-center justify-center gap-3 hover:scale-[1.02] transition shadow-2xl tracking-widest uppercase text-xs active:scale-95 disabled:opacity-50">
-                            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5 h-5">
-                            ${state.isAuthenticating ? 'Authorising...' : 'Sign in with Google'}
-                        </button>
-                        
-                        <p class="text-[9px] text-slate-500 font-black uppercase tracking-widest">Restricted Gateway</p>
-                    </div>
-                </div>
-            `;
-            lucide.createIcons();
-        }
-
-        async function handleGoogleLogin() {
-            state.isAuthenticating = true;
-            state.authError = null;
-            updateUI();
             
-            const provider = new firebase.auth.GoogleAuthProvider();
-            try {
-                // Using Popup as it's more stable for GitHub Pages auth flow
-                const result = await auth.signInWithPopup(provider);
-                const user = result.user;
-                if (!user.email.toLowerCase().endsWith('@descasio.io')) {
-                    await auth.signOut();
-                    state.authError = "Unauthorized: @descasio.io email required.";
-                    state.isAuthenticating = false;
-                    renderLogin();
-                }
-            } catch (error) {
-                console.error("Auth Error:", error);
-                state.isAuthenticating = false;
-                state.authError = "Connection failed. Please ensure popups are enabled and try again.";
-                renderLogin();
+            if (diff <= 0) {
+                state.timeLeft = { days: 0, hours: 0, mins: 0, label: "CHALLENGE ENDED" };
+            } else {
+                state.timeLeft = {
+                    days: Math.floor(diff / (1000 * 60 * 60 * 24)),
+                    hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
+                    mins: Math.floor((diff / 1000 / 60) % 60),
+                    label: "ENDS IN"
+                };
             }
         }
 
         function updateUI() {
             const app = document.getElementById('app');
-            if (!state.user) {
-                renderLogin();
+            if (!state.user) return;
+
+            if (!state.isAuthenticated) {
+                app.innerHTML = renderLoginGateway();
+                lucide.createIcons();
                 return;
             }
 
@@ -210,13 +227,13 @@
                         <div class="flex items-center gap-1 bg-slate-900/50 p-1 rounded-xl border border-slate-800 overflow-x-auto no-scrollbar">
                             <button onclick="navigate('dashboard')" class="flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-black uppercase transition whitespace-nowrap ${state.activeTab === 'dashboard' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}">Dashboard</button>
                             <button onclick="navigate('challenge')" class="flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-black uppercase transition whitespace-nowrap ${state.activeTab === 'challenge' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}">Challenge</button>
-                            <button onclick="navigate('gallery')" class="flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-black uppercase transition whitespace-nowrap ${state.activeTab === 'gallery' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}">Innovations</button>
+                            <button onclick="navigate('gallery')" class="flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-black uppercase transition whitespace-nowrap ${state.activeTab === 'gallery' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}">Submissions</button>
                             <button onclick="navigate('ideahub')" class="flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-black uppercase transition whitespace-nowrap ${state.activeTab === 'ideahub' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}">Idea Hub</button>
                             <button onclick="navigate('winners')" class="flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-black uppercase transition whitespace-nowrap ${state.activeTab === 'winners' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}">Winners</button>
                             ${state.isAdmin ? `<button onclick="navigate('admin')" class="flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-black uppercase transition whitespace-nowrap ${state.activeTab === 'admin' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}">Admin</button>` : ''}
                         </div>
-                        <div onclick="toggleAdminLogin()" class="w-10 h-10 bg-slate-800 rounded-full border border-slate-700 flex items-center justify-center font-bold text-[8px] tracking-tighter text-white cursor-pointer hover:bg-slate-700 transition shadow-lg px-2 text-center leading-none">
-                            ${state.isAdmin ? '<i data-lucide="shield-check" class="text-emerald-400 w-4 h-4"></i>' : 'Admin'}
+                        <div onclick="toggleAdminLogin()" class="w-10 h-10 bg-slate-800 rounded-full border border-slate-700 flex items-center justify-center font-bold text-xs text-white cursor-pointer hover:bg-slate-700 transition">
+                            ${state.isAdmin ? '<i data-lucide="shield-check" class="text-emerald-400 w-4 h-4"></i>' : 'JD'}
                         </div>
                     </div>
                 </nav>
@@ -229,7 +246,7 @@
                 ${state.showAdminLogin ? renderAdminLogin() : ''}
 
                 <footer class="max-w-7xl mx-auto p-8 border-t border-slate-900 flex flex-col items-center gap-2 mt-20 text-center">
-                    <p class="text-blue-400 text-lg font-black uppercase tracking-[0.15em] mb-4 drop-shadow-[0_0_10px_rgba(59,130,246,0.3)]">
+                    <p class="text-blue-400 text-sm font-black uppercase tracking-[0.15em] mb-4">
                         For Support and Feedback, email ai-innovation-hub@descasio.io
                     </p>
                     <div class="text-slate-600 text-[10px] font-bold uppercase tracking-[0.2em] italic underline decoration-blue-500/30 underline-offset-4">
@@ -241,6 +258,38 @@
             lucide.createIcons();
         }
 
+        function renderLoginGateway() {
+            return `
+                <div class="min-h-screen bg-[#020617] flex items-center justify-center p-6 relative overflow-hidden">
+                    <div class="absolute -top-20 -left-20 w-96 h-96 bg-blue-900/20 blur-[120px] rounded-full"></div>
+                    <div class="absolute -bottom-20 -right-20 w-96 h-96 bg-indigo-900/20 blur-[120px] rounded-full"></div>
+
+                    <div class="w-full max-w-md bg-[#0f172a] rounded-[2.5rem] border border-slate-800 p-12 shadow-2xl relative z-10 text-center">
+                        <div class="w-20 h-20 bg-blue-600 rounded-3xl flex items-center justify-center mx-auto mb-10 shadow-lg shadow-blue-500/20">
+                            <i data-lucide="zap" class="text-white w-10 h-10"></i>
+                        </div>
+                        <h2 class="text-white text-4xl font-black italic tracking-tighter uppercase mb-2">DESCASIO</h2>
+                        <p class="text-blue-500 text-[10px] font-black uppercase tracking-[0.3em] mb-12">Innovation Hub Gateway</p>
+
+                        ${state.gatewayView === 'email' ? `
+                            <p class="text-slate-400 text-sm italic mb-10 px-4 leading-relaxed">Enter your @descasio.io email to receive a 24-hour access code.</p>
+                            <input id="gatewayEmail" type="email" class="w-full bg-slate-950 border border-slate-800 rounded-2xl p-5 text-center text-white outline-none focus:ring-2 ring-blue-600 font-bold mb-6" placeholder="name@descasio.io" value="${state.authEmail}">
+                            <div id="gatewayError" class="hidden text-red-500 text-[10px] font-bold uppercase mb-6"></div>
+                            <button onclick="requestOtp()" class="w-full bg-white text-black font-black py-5 rounded-2xl uppercase tracking-widest text-[11px] hover:bg-blue-50 transition shadow-xl active:scale-[0.98] flex items-center justify-center gap-3">
+                                ${state.loading ? '<div class="w-4 h-4 border-2 border-black/20 border-t-black rounded-full animate-spin"></div>' : 'REQUEST ACCESS CODE'}
+                            </button>
+                        ` : `
+                            <p class="text-slate-400 text-sm italic mb-10 px-4 leading-relaxed">Enter the 6-digit code sent to <br><b class="text-blue-400">${state.authEmail}</b></p>
+                            <input id="gatewayOtp" type="text" maxlength="6" class="w-full bg-slate-950 border border-slate-800 rounded-2xl p-5 text-center text-white outline-none focus:ring-2 ring-blue-600 font-mono tracking-[0.5em] text-2xl font-bold mb-6" placeholder="000000">
+                            <div id="gatewayError" class="hidden text-red-500 text-[10px] font-bold uppercase mb-6"></div>
+                            <button onclick="verifyOtp()" class="w-full bg-blue-600 text-white font-black py-5 rounded-2xl uppercase tracking-widest text-[11px] hover:bg-blue-500 transition shadow-xl active:scale-[0.98] mb-4">VERIFY & ENTER</button>
+                            <button onclick="state.gatewayView = 'email'; updateUI();" class="text-slate-500 text-[10px] font-black uppercase tracking-widest hover:text-white transition">Back to Email</button>
+                        `}
+                    </div>
+                </div>
+            `;
+        }
+
         function renderTabContent() {
             if (state.activeTab === 'dashboard') {
                 return `
@@ -249,26 +298,31 @@
                             <div class="grid md:grid-cols-2 gap-8 items-center relative z-10">
                                 <div>
                                     <span class="bg-orange-500/20 text-orange-400 border border-orange-500/30 px-3 py-1 rounded-full text-[10px] uppercase font-bold tracking-widest">Active Campaign</span>
-                                    <h2 class="text-5xl font-black mt-6 mb-4 text-white leading-none italic tracking-tighter uppercase">Optimizing Client Onboarding with AI</h2>
-                                    <p class="text-blue-100 text-lg mb-8 max-w-lg opacity-80 italic">Automate acquisitions while maintaining Descasio's high-quality personal touch.</p>
+                                    <h2 class="text-5xl font-black mt-6 mb-4 text-white leading-none italic tracking-tighter uppercase">Design Our Descasio Avatar</h2>
+                                    <p class="text-blue-100 text-lg mb-8 max-w-lg opacity-80">Create an avatar to be the face of Descasio. This isn't just a cool picture, it’s a digital version of what Descasio stands for: bold, smart, and focused on Africa’s future.</p>
                                     <div class="flex flex-wrap gap-4 items-center">
-                                        <button onclick="navigate('challenge')" class="bg-white text-blue-900 px-8 py-4 rounded-2xl font-black uppercase text-xs tracking-widest hover:scale-105 transition shadow-2xl">The Brief <i data-lucide="chevron-right" class="inline w-4 h-4 ml-1"></i></button>
-                                        <div class="bg-black/20 backdrop-blur-md px-6 py-4 rounded-2xl border border-white/10 flex items-center gap-4 text-white font-mono">
-                                            <div class="text-center"><span class="block text-[8px] opacity-60 font-black uppercase">${state.timeLeft.label}</span><span>${state.timeLeft.days}d : ${state.timeLeft.hours}h : ${state.timeLeft.mins}m</span></div>
+                                        <button onclick="navigate('challenge')" class="bg-white text-blue-900 px-8 py-4 rounded-2xl font-black uppercase text-xs tracking-widest hover:scale-105 transition shadow-2xl">The Brief <i data-lucide="chevron-right" class="inline w-4 h-4"></i></button>
+                                        <div class="bg-black/20 backdrop-blur-md px-6 py-4 rounded-2xl border border-white/10 flex items-center gap-4 text-white">
+                                            <div class="text-center"><span class="block text-[8px] opacity-60 font-black uppercase">${state.timeLeft.label}</span><span class="font-mono text-2xl font-bold">${state.timeLeft.days}d : ${state.timeLeft.hours}h : ${state.timeLeft.mins}m</span></div>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="bg-slate-900/40 backdrop-blur-xl border border-white/10 p-6 rounded-3xl">
-                                    <h3 class="flex items-center gap-2 text-blue-200 font-bold mb-6 text-xs uppercase tracking-widest"><i data-lucide="trophy" class="text-yellow-400 w-4 h-4"></i> Hall of Fame Preview</h3>
+                                    <h3 class="flex items-center gap-2 text-blue-200 font-bold mb-6 text-xs uppercase tracking-widest"><i data-lucide="trophy" class="text-yellow-400 w-4 h-4"></i> Previous Innovator</h3>
                                     <div class="flex items-center gap-4 mb-4">
                                         <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white font-black text-2xl shadow-xl">${PREVIOUS_WINNER.avatar}</div>
-                                        <div><p class="font-black text-white text-xl uppercase tracking-tighter">${PREVIOUS_WINNER.name}</p><p class="text-blue-400 text-xs font-bold uppercase tracking-widest">${PREVIOUS_WINNER.dept}</p></div>
+                                        <div>
+                                            <p class="font-black text-white text-xl uppercase tracking-tighter">${PREVIOUS_WINNER.name}</p>
+                                            <p class="text-blue-400 text-xs font-bold uppercase tracking-widest">${PREVIOUS_WINNER.dept}</p>
+                                        </div>
                                     </div>
                                     <div class="p-4 bg-black/30 rounded-2xl border border-white/5 italic text-blue-100 text-sm leading-relaxed">"${PREVIOUS_WINNER.title}"</div>
                                 </div>
                             </div>
                         </div>
-                        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 flex items-center gap-4 border-l-4 border-l-blue-500 max-w-sm shadow-xl">
+
+                        <!-- Restore Submissions Recorded Block -->
+                        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 flex items-center gap-4 border-l-4 border-l-blue-500 max-sm shadow-xl">
                             <div class="w-12 h-12 bg-slate-800 rounded-2xl flex items-center justify-center"><i data-lucide="target" class="text-emerald-400"></i></div>
                             <div><p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Submissions Recorded</p><p class="text-3xl font-black text-white">${state.submissions.length}</p></div>
                         </div>
@@ -278,28 +332,32 @@
 
             if (state.activeTab === 'ideahub') {
                 return `
-                    <div class="max-w-5xl mx-auto space-y-12 animate-in fade-in">
-                        <div class="text-center"><h2 class="text-4xl font-black text-white italic uppercase tracking-tighter">AI Idea Hub</h2><p class="text-slate-500 font-bold uppercase tracking-widest text-xs mt-2 italic underline underline-offset-4">What AI solutions should we build next?</p></div>
+                    <div class="max-w-5xl mx-auto space-y-12">
+                        <div class="text-center"><h2 class="text-4xl font-black text-white italic uppercase tracking-tighter">AI Idea Crowdsourcing</h2><p class="text-slate-500 font-bold uppercase tracking-widest text-xs mt-2">What AI solutions should we build next?</p></div>
                         <div class="bg-slate-900 border border-blue-500/10 rounded-[2.5rem] p-10 max-w-2xl mx-auto shadow-2xl custom-card">
+                            <h3 class="text-2xl font-black text-white mb-8 italic uppercase tracking-tighter flex items-center gap-3"><i data-lucide="lightbulb" class="text-yellow-400"></i> Pitch an AI Concept</h3>
                             <form onsubmit="handleIdeaSubmit(event)" class="space-y-6">
                                 <div class="grid md:grid-cols-2 gap-6">
+                                    <input required oninput="handleFormInput('ideaData', 'name', this.value)" value="${state.ideaData.name || ''}" class="bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-bold text-sm" placeholder="Full Name">
+                                    <input required oninput="handleFormInput('ideaData', 'email', this.value)" value="${state.ideaData.email || ''}" type="email" class="bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-bold text-sm" placeholder="Work Email (@descasio.io)">
                                     <select onchange="handleFormInput('ideaData', 'dept', this.value)" class="bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-bold text-sm">
-                                        <option value="">Select Department</option>
+                                        <option value="">Select Dept</option>
                                         ${DEPARTMENTS.map(d => `<option value="${d}" ${state.ideaData.dept === d ? 'selected' : ''}>${d}</option>`).join('')}
                                     </select>
                                     <input required oninput="handleFormInput('ideaData', 'title', this.value)" value="${state.ideaData.title || ''}" class="bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-bold text-sm" placeholder="Idea Title">
                                 </div>
-                                <textarea required oninput="handleFormInput('ideaData', 'description', this.value)" rows="4" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 text-sm" placeholder="Describe the challenge AI could solve...">${state.ideaData.description || ''}</textarea>
+                                <textarea required oninput="handleFormInput('ideaData', 'description', this.value)" rows="4" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 text-sm" placeholder="Description...">${state.ideaData.description || ''}</textarea>
+                                <div id="ideaStatus"></div>
                                 <button type="submit" class="w-full bg-blue-700 hover:bg-blue-600 text-white font-black p-5 rounded-2xl uppercase tracking-widest text-xs">Share Concept</button>
                             </form>
                         </div>
                         <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                             ${state.ideas.map(idea => `
-                                <div class="bg-slate-900 p-6 rounded-3xl border border-slate-800 hover:border-blue-500/30 transition-all group">
-                                    <div class="flex items-center gap-2 text-blue-500 mb-4"><i data-lucide="lightbulb" class="w-4 h-4"></i> <span class="text-[10px] font-black uppercase tracking-widest">Team Contribution</span></div>
-                                    <h4 class="text-white font-black text-lg mb-2 uppercase leading-tight group-hover:text-blue-400 transition-colors">${idea.title}</h4>
-                                    <p class="text-slate-400 text-sm italic line-clamp-4 italic break-all">"${idea.description}"</p>
-                                    <div class="mt-6 pt-4 border-t border-slate-800 text-[9px] font-black text-slate-500 uppercase tracking-widest">By ${idea.name || 'Anonymous'}</div>
+                                <div class="bg-slate-900 p-6 rounded-3xl border border-slate-800 hover:border-blue-500/30 transition-all group overflow-hidden">
+                                    <div class="flex items-center gap-2 text-blue-500 mb-4"><i data-lucide="lightbulb" class="w-4 h-4"></i> <span class="text-[10px] font-black uppercase tracking-widest">Concept</span></div>
+                                    <h4 class="text-white font-black text-lg mb-2 uppercase leading-tight break-words">${idea.title}</h4>
+                                    <p class="text-slate-400 text-sm italic line-clamp-4 break-words">"${idea.description}"</p>
+                                    <div class="mt-6 pt-4 border-t border-slate-800 text-[9px] font-black text-slate-500 uppercase truncate">By ${idea.name || 'Anonymous'}</div>
                                 </div>
                             `).join('')}
                         </div>
@@ -310,81 +368,163 @@
             if (state.activeTab === 'challenge') {
                 return `
                     <div class="max-w-4xl mx-auto space-y-12 animate-in slide-in-from-bottom duration-500">
-                        <div class="border-b border-slate-800 pb-8 text-center"><h2 class="text-4xl font-black mb-4 text-white uppercase italic tracking-tighter leading-none">Challenge Detail</h2><p class="text-slate-400 text-lg opacity-70 italic mt-2">Scale acquiring and onboarding through AI automation.</p></div>
-                        
-                        <!-- Visual Criteria Grid -->
+                        <div class="border-b border-slate-800 pb-8 text-center">
+                            <h2 class="text-4xl font-black mb-4 text-white uppercase italic tracking-tighter">Design Our Descasio Avatar</h2>
+                            <p class="text-slate-400 text-lg opacity-70">Create an avatar to be the face of Descasio. This isn't just a cool picture, it’s a digital version of what Descasio stands for: bold, smart, and focused on Africa’s future.</p>
+                        </div>
                         <div class="grid grid-cols-3 gap-6">
                             <div class="bg-slate-900 border border-slate-800 p-10 rounded-[2rem] text-center shadow-xl">
-                                <p class="text-blue-400 font-black text-[10px] uppercase tracking-widest mb-2">Impact</p>
-                                <p class="text-4xl font-black text-white italic tracking-tighter">40%</p>
+                                <p class="text-blue-400 font-black text-[10px] uppercase tracking-widest mb-2">Brand & Colors</p>
+                                <p class="text-4xl font-black text-white italic tracking-tighter">5 Points</p>
                             </div>
                             <div class="bg-slate-900 border border-slate-800 p-10 rounded-[2rem] text-center shadow-xl">
-                                <p class="text-blue-400 font-black text-[10px] uppercase tracking-widest mb-2">Feasibility</p>
-                                <p class="text-4xl font-black text-white italic tracking-tighter">30%</p>
+                                <p class="text-blue-400 font-black text-[10px] uppercase tracking-widest mb-2">Value & Personality</p>
+                                <p class="text-4xl font-black text-white italic tracking-tighter">5 Points</p>
                             </div>
                             <div class="bg-slate-900 border border-slate-800 p-10 rounded-[2rem] text-center shadow-xl">
-                                <p class="text-blue-400 font-black text-[10px] uppercase tracking-widest mb-2">Innovation</p>
-                                <p class="text-4xl font-black text-white italic tracking-tighter">30%</p>
+                                <p class="text-blue-400 font-black text-[10px] uppercase tracking-widest mb-2">Prompt Detail</p>
+                                <p class="text-4xl font-black text-white italic tracking-tighter">5 Points</p>
                             </div>
                         </div>
 
+                        <!-- Key Criteria -->
                         <div class="bg-slate-900 border border-slate-800 p-8 rounded-3xl shadow-xl">
-                            <h3 class="text-2xl font-black text-white mb-6 uppercase flex items-center gap-3"><i data-lucide="check-circle" class="text-emerald-500"></i> Critical Success Factors</h3>
-                            <ul class="space-y-4 text-slate-300 text-sm italic font-medium">
-                                <li class="flex items-start gap-3"><i data-lucide="chevron-right" class="text-blue-500 w-4 h-4 mt-0.5"></i> Primary focus: Improving the 'speed-to-value' for new enterprise clients.</li>
-                                <li class="flex items-start gap-3"><i data-lucide="chevron-right" class="text-blue-500 w-4 h-4 mt-0.5"></i> Automation depth: The agent must handle at least 3 distinct stages of the workflow.</li>
-                                <li class="flex items-start gap-3"><i data-lucide="chevron-right" class="text-blue-500 w-4 h-4 mt-0.5"></i> Scalability: Solution must be easily adaptable across multiple departments.</li>
+                            <h3 class="text-2xl font-black text-white mb-6 uppercase flex items-center gap-3"><i data-lucide="check-circle" class="text-emerald-500"></i> Key Criteria</h3>
+                            <ul class="space-y-10">
+                                <!-- 1. Brand and Colours -->
+                                <li class="flex items-start gap-5 group">
+                                    <div class="mt-1 bg-blue-500/10 text-blue-400 p-2 rounded-lg border border-blue-500/20 group-hover:bg-blue-500 group-hover:text-white transition-all duration-300">
+                                        <i data-lucide="shield-check" class="w-6 h-6"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <h3 class="text-white font-bold text-xl mb-4 uppercase">1. Brand and Colours</h3>
+                                        <div class="space-y-4 text-slate-300 leading-relaxed text-sm">
+                                            <p class="flex items-start gap-3">
+                                                <span class="text-blue-400 font-bold mt-1 text-xs">▶</span>
+                                                <span><span class="highlight-text">Our Colors:</span> Make sure the avatar uses our brand colors.</span>
+                                            </p>
+                                            <p class="flex items-start gap-3">
+                                                <span class="text-blue-400 font-bold mt-1 text-xs">▶</span>
+                                                <span><span class="highlight-text">The Logo:</span> Try to work the Descasio logo into the design. It could be on the avatar’s chest or even a floating holographic "heart."</span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </li>
+
+                                <!-- 2. Value and Personality -->
+                                <li class="flex items-start gap-5 group">
+                                    <div class="mt-1 bg-blue-500/10 text-blue-400 p-2 rounded-lg border border-blue-500/20 group-hover:bg-blue-500 group-hover:text-white transition-all duration-300">
+                                        <i data-lucide="message-square" class="w-6 h-6"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <h3 class="text-white font-bold text-xl mb-4 uppercase">2. Value and Personality</h3>
+                                        <div class="space-y-4 text-slate-300 leading-relaxed text-sm">
+                                            <p class="flex items-start gap-3">
+                                                <span class="text-blue-400 font-bold mt-1 text-xs">▶</span>
+                                                <span><span class="highlight-text">Innovation:</span> E.g Add things like glowing circuits or floating data screens to show we’re always looking at what’s next.</span>
+                                            </p>
+                                            <p class="flex items-start gap-3">
+                                                <span class="text-blue-400 font-bold mt-1 text-xs">▶</span>
+                                                <span><span class="highlight-text">Leadership:</span> Give the avatar a "visionary" feel. It should look like it’s looking toward the horizon, leading the way.</span>
+                                            </p>
+                                            <p class="flex items-start gap-3">
+                                                <span class="text-blue-400 font-bold mt-1 text-xs">▶</span>
+                                                <span><span class="highlight-text">Customer-Centric:</span> We’re here for real people. Give the avatar a friendly face or a welcoming pose—maybe it’s reaching out to help or shake a hand.</span>
+                                            </p>
+                                            <p class="flex items-start gap-3">
+                                                <span class="text-blue-400 font-bold mt-1 text-xs">▶</span>
+                                                <span><span class="highlight-text">Expert but Friendly:</span> The avatar should look sharp and professional but it should have a warm, helpful energy.</span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </li>
+
+                                <!-- 3. Prompt Detail -->
+                                <li class="flex items-start gap-5 group">
+                                    <div class="mt-1 bg-blue-500/10 text-blue-400 p-2 rounded-lg border border-blue-500/20 group-hover:bg-blue-500 group-hover:text-white transition-all duration-300">
+                                        <i data-lucide="layout" class="w-6 h-6"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <h3 class="text-white font-bold text-xl mb-4 uppercase">3. Prompt Detail</h3>
+                                        <div class="space-y-4 text-slate-300 leading-relaxed text-sm">
+                                            <p class="flex items-start gap-3">
+                                                <span class="text-blue-400 font-bold mt-1 text-xs">▶</span>
+                                                <span>Put enough thought into the instruction. Give the AI clear instructions and specify keywords.</span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </li>
                             </ul>
                         </div>
 
                         <div class="bg-slate-900 border-2 border-blue-500/20 rounded-[3rem] p-12 shadow-2xl">
-                            <h3 class="text-3xl font-black text-white mb-10 italic uppercase tracking-tighter flex items-center gap-3 leading-none"><i data-lucide="plus-circle" class="text-blue-500"></i> Broadcast Solution</h3>
-                            
+                            <h3 class="text-3xl font-black text-white mb-10 italic uppercase tracking-tighter flex items-center gap-3"><i data-lucide="plus-circle" class="text-blue-500"></i> Share Your Submission</h3>
                             <div class="flex gap-4 mb-10 bg-slate-950 p-2 rounded-2xl border border-slate-800 max-w-md">
                                 <button onclick="setSubmissionType('individual')" class="flex-1 py-3 rounded-xl font-black text-[10px] uppercase transition-all ${state.submissionType === 'individual' ? 'bg-blue-600 text-white' : 'text-slate-500'}">Individual</button>
                                 <button onclick="setSubmissionType('group')" class="flex-1 py-3 rounded-xl font-black text-[10px] uppercase transition-all ${state.submissionType === 'group' ? 'bg-blue-600 text-white' : 'text-slate-500'}">Group (Team of 2)</button>
                             </div>
-
                             <form onsubmit="handleFormSubmit(event)" class="space-y-8">
                                 ${state.submissionType === 'individual' ? `
                                     <div class="grid md:grid-cols-2 gap-6 animate-in fade-in">
-                                        <input required oninput="handleFormInput('formData', 'name', this.value)" value="${state.formData.name || ''}" class="bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-bold text-sm" placeholder="Your Name">
-                                        <select onchange="handleFormInput('formData', 'dept', this.value)" class="bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-bold text-sm">
-                                            <option value="">Select Dept</option>
-                                            ${DEPARTMENTS.map(d => `<option value="${d}" ${state.formData.dept === d ? 'selected' : ''}>${d}</option>`).join('')}
-                                        </select>
+                                        <div class="space-y-2"><label class="text-[10px] font-black text-slate-500 uppercase ml-1">Full Name</label><input required oninput="handleFormInput('formData', 'name', this.value)" value="${state.formData.name || ''}" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-bold"></div>
+                                        <div class="space-y-2"><label class="text-[10px] font-black text-slate-500 uppercase ml-1">Email (@descasio.io)</label><input required oninput="handleFormInput('formData', 'email', this.value)" value="${state.formData.email || ''}" type="email" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-bold"></div>
+                                        <div class="space-y-2 col-span-full"><label class="text-[10px] font-black text-slate-500 uppercase ml-1">Department</label><select onchange="handleFormInput('formData', 'dept', this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-bold"><option value="">Select Dept</option>${DEPARTMENTS.map(d => `<option value="${d}" ${state.formData.dept === d ? 'selected' : ''}>${d}</option>`).join('')}</select></div>
                                     </div>
                                 ` : `
                                     <div class="space-y-8 animate-in slide-in-from-top-2">
-                                        <input required oninput="handleFormInput('formData', 'teamName', this.value)" value="${state.formData.teamName || ''}" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-black uppercase italic text-sm" placeholder="THE DESCASIO AVENGERS">
+                                        <div class="space-y-2"><label class="text-[10px] font-black text-slate-500 uppercase ml-1">Team Name</label><input required oninput="handleFormInput('formData', 'teamName', this.value)" value="${state.formData.teamName || ''}" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-black uppercase italic" placeholder="THE DESCASIO AVENGERS"></div>
+                                        
+                                        <!-- Restore Right Team Member Form (2 Members) -->
                                         <div class="grid md:grid-cols-2 gap-6 p-8 bg-slate-950 rounded-3xl border border-slate-800">
-                                            <div class="col-span-full border-b border-slate-800 pb-3 mb-3 font-black text-[9px] text-blue-500 uppercase">Innovator 01</div>
-                                            <input required oninput="handleFormInput('formData', 'member1Name', this.value)" value="${state.formData.member1Name || ''}" class="bg-slate-900 border border-slate-800 rounded-xl p-4 text-white outline-none text-sm font-bold" placeholder="Full Name">
-                                            <select onchange="handleFormInput('formData', 'member1Dept', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl p-4 text-white outline-none font-bold text-sm">
-                                                <option value="">Select Dept</option>
-                                                ${DEPARTMENTS.map(d => `<option value="${d}" ${state.formData.member1Dept === d ? 'selected' : ''}>${d}</option>`).join('')}
-                                            </select>
+                                            <div class="col-span-full border-b border-slate-800 pb-3 mb-3"><span class="text-[10px] font-black text-blue-500 uppercase">Team Member 01</span></div>
+                                            <div class="space-y-2">
+                                                <label class="text-[10px] font-black text-slate-500 uppercase">Name</label>
+                                                <input required oninput="handleFormInput('formData', 'member1Name', this.value)" value="${state.formData.member1Name || ''}" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-1 ring-blue-600">
+                                            </div>
+                                            <div class="space-y-2">
+                                                <label class="text-[10px] font-black text-slate-500 uppercase">Email</label>
+                                                <input required oninput="handleFormInput('formData', 'member1Email', this.value)" value="${state.formData.member1Email || ''}" type="email" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-1 ring-blue-600">
+                                            </div>
+                                            <div class="col-span-full space-y-2">
+                                                <label class="text-[10px] font-black text-slate-500 uppercase">Department</label>
+                                                <select onchange="handleFormInput('formData', 'member1Dept', this.value)" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white outline-none">
+                                                    <option value="">Select Dept</option>
+                                                    ${DEPARTMENTS.map(d => `<option value="${d}" ${state.formData.member1Dept === d ? 'selected' : ''}>${d}</option>`).join('')}
+                                                </select>
+                                            </div>
                                         </div>
+
                                         <div class="grid md:grid-cols-2 gap-6 p-8 bg-slate-950 rounded-3xl border border-slate-800">
-                                            <div class="col-span-full border-b border-slate-800 pb-3 mb-3 font-black text-[9px] text-blue-500 uppercase">Innovator 02</div>
-                                            <input required oninput="handleFormInput('formData', 'member2Name', this.value)" value="${state.formData.member2Name || ''}" class="bg-slate-900 border border-slate-800 rounded-xl p-4 text-white outline-none text-sm font-bold" placeholder="Full Name">
-                                            <select onchange="handleFormInput('formData', 'member2Dept', this.value)" class="bg-slate-900 border border-slate-800 rounded-xl p-4 text-white outline-none font-bold text-sm">
-                                                <option value="">Select Dept</option>
-                                                ${DEPARTMENTS.map(d => `<option value="${d}" ${state.formData.member2Dept === d ? 'selected' : ''}>${d}</option>`).join('')}
-                                            </select>
+                                            <div class="col-span-full border-b border-slate-800 pb-3 mb-3"><span class="text-[10px] font-black text-blue-500 uppercase">Team Member 02</span></div>
+                                            <div class="space-y-2">
+                                                <label class="text-[10px] font-black text-slate-500 uppercase">Name</label>
+                                                <input required oninput="handleFormInput('formData', 'member2Name', this.value)" value="${state.formData.member2Name || ''}" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-1 ring-blue-600">
+                                            </div>
+                                            <div class="space-y-2">
+                                                <label class="text-[10px] font-black text-slate-500 uppercase">Email</label>
+                                                <input required oninput="handleFormInput('formData', 'member2Email', this.value)" value="${state.formData.member2Email || ''}" type="email" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-1 ring-blue-600">
+                                            </div>
+                                            <div class="col-span-full space-y-2">
+                                                <label class="text-[10px] font-black text-slate-500 uppercase">Department</label>
+                                                <select onchange="handleFormInput('formData', 'member2Dept', this.value)" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white outline-none">
+                                                    <option value="">Select Dept</option>
+                                                    ${DEPARTMENTS.map(d => `<option value="${d}" ${state.formData.member2Dept === d ? 'selected' : ''}>${d}</option>`).join('')}
+                                                </select>
+                                            </div>
                                         </div>
                                     </div>
                                 `}
                                 <div class="pt-10 border-t border-slate-800 space-y-8">
-                                    <input required oninput="handleFormInput('formData', 'innovationName', this.value)" value="${state.formData.innovationName || ''}" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-bold" placeholder="Innovation System Name">
+                                    <div class="space-y-2"><label class="text-[10px] font-black text-slate-500 uppercase ml-1">Avatar Name</label><input required oninput="handleFormInput('formData', 'innovationName', this.value)" value="${state.formData.innovationName || ''}" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-bold"></div>
                                     <div class="space-y-2">
-                                        <input required oninput="handleFormInput('formData', 'docLink', this.value)" value="${state.formData.docLink || ''}" type="url" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-mono text-xs italic" placeholder="Shared Documentation Link (https://...)">
-                                        <p class="text-[9px] font-black text-blue-400 uppercase tracking-widest italic ml-1">Insight: Submissions should start with https://</p>
+                                        <label class="text-[10px] font-black text-slate-500 uppercase ml-1">Upload Image (PNG, JPG, JPEG)</label>
+                                        <input required type="file" accept="image/png, image/jpeg, image/jpg" onchange="handleFileUpload(this)" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 text-xs italic">
+                                        <p class="text-[9px] font-black text-blue-500/50 uppercase mt-1">Maximum file size: 2MB</p>
                                     </div>
-                                    <textarea required oninput="handleFormInput('formData', 'achievements', this.value)" rows="6" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 text-sm font-medium italic leading-relaxed" placeholder="Summarise the impact and efficient outcomes...">${state.formData.achievements || ''}</textarea>
+                                    <div class="space-y-2"><label class="text-[10px] font-black text-slate-500 uppercase ml-1">Prompt used</label><textarea required oninput="handleFormInput('formData', 'achievements', this.value)" rows="6" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 text-sm font-medium" placeholder="Paste the prompt used to generate the avatar...">${state.formData.achievements || ''}</textarea></div>
                                 </div>
                                 <div id="formStatus"></div>
-                                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-6 rounded-2xl transition shadow-2xl uppercase tracking-[0.2em] active:scale-[0.98]">Broadcast Innovation to Cloud</button>
+                                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-6 rounded-2xl transition shadow-2xl uppercase tracking-[0.2em] active:scale-[0.98]">Submit</button>
                             </form>
                         </div>
                     </div>
@@ -395,41 +535,46 @@
                 const shortlisted = state.submissions.filter(s => s.shortlisted);
                 return `
                     <div class="space-y-12 animate-in fade-in">
+                        <!-- Restore Shortlisted for Voting Section -->
                         <section class="space-y-8">
                             <div class="flex flex-col md:flex-row md:items-center justify-between gap-8 border-b border-slate-800 pb-10">
-                                <div><h2 class="text-4xl font-black text-white italic tracking-tighter uppercase underline decoration-blue-500 decoration-8 underline-offset-8 leading-none">Shortlisted for Voting</h2></div>
+                                <div><h2 class="text-4xl font-black text-white italic tracking-tighter uppercase underline decoration-blue-500 decoration-8 underline-offset-8">Shortlisted for Voting</h2></div>
                                 <a href="${EXTERNAL_VOTING_URL}" target="_blank" class="btn-shiny text-white px-12 py-6 rounded-[2rem] font-black uppercase text-sm tracking-[0.1em] shadow-2xl transition hover:scale-110 flex items-center justify-center gap-4">
                                     <i data-lucide="vote" class="w-6 h-6"></i> CAST OFFICIAL VOTE
                                 </a>
                             </div>
                             <div class="grid md:grid-cols-3 gap-8">
                                 ${shortlisted.map(item => `
-                                    <div class="bg-slate-900 border-2 border-blue-500/20 rounded-[2.5rem] p-8 flex flex-col h-full bg-blue-500/5 shadow-2xl group transition-all hover:border-blue-500/50">
-                                        <div class="flex justify-between items-center mb-8"><span class="bg-blue-600/20 text-blue-400 border border-blue-400/30 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest">${item.type === 'group' ? 'TEAM' : (item.dept || 'CORE')}</span></div>
-                                        <h3 class="text-2xl font-black text-white mb-3 uppercase leading-tight italic tracking-tighter group-hover:text-blue-400 transition-colors">${item.innovationName}</h3>
-                                        <p class="text-slate-500 text-[10px] mb-8 uppercase tracking-[0.2em] font-black">BY ${item.type === 'group' ? item.teamName : item.name}</p>
-                                        <button onclick="showDetails('${item.id}')" class="w-full text-left bg-slate-950/60 rounded-3xl p-6 border border-white/5 mb-8 transition-all overflow-hidden group-hover:shadow-inner hover:border-blue-500/30">
-                                            <p class="text-xs text-slate-300 line-clamp-4 break-all italic leading-relaxed">"${item.achievements}"</p>
-                                        </button>
-                                        <div class="mt-auto pt-6 border-t border-slate-800 text-center"><p class="text-[9px] font-black text-slate-600 uppercase tracking-[0.3em] italic">Verified Solution Entry</p></div>
+                                    <div class="bg-slate-900 border-2 border-blue-500/20 rounded-[2.5rem] p-8 flex flex-col h-full bg-blue-500/5 shadow-2xl relative overflow-hidden group">
+                                        <div class="aspect-square bg-slate-950 rounded-2xl mb-6 overflow-hidden border border-slate-800">
+                                            ${item.docLink ? `<img src="${item.docLink}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">` : `<div class="w-full h-full flex items-center justify-center text-slate-800"><i data-lucide="image" class="w-12 h-12"></i></div>`}
+                                        </div>
+                                        <div class="flex justify-between items-center mb-4"><span class="bg-blue-600/20 text-blue-400 border border-blue-400/30 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest">${item.type === 'group' ? 'TEAM' : (item.dept || 'INNOVATION')}</span></div>
+                                        <h3 class="text-2xl font-black text-white mb-3 uppercase italic tracking-tighter break-words">${item.innovationName}</h3>
+                                        <p class="text-slate-500 text-[10px] mb-8 uppercase tracking-[0.2em] font-black truncate">BY ${item.type === 'group' ? item.teamName : item.name}</p>
+                                        <button onclick="showDetails('${item.id}')" class="mt-auto w-full bg-slate-950 p-4 rounded-xl border border-white/5 text-[9px] font-black text-blue-400 uppercase tracking-widest hover:text-white transition">Details & Prompt</button>
+                                        <div class="mt-6 pt-6 border-t border-slate-800 text-center"><p class="text-[9px] font-black text-slate-600 uppercase tracking-[0.3em]">Verified Solution Entry</p></div>
                                     </div>
                                 `).join('')}
                                 ${shortlisted.length === 0 ? '<div class="col-span-full py-24 text-center border-2 border-dashed border-slate-800 rounded-[3rem] italic text-slate-600 font-black uppercase tracking-[0.2em]">Admin verification in progress...</div>' : ''}
                             </div>
                         </section>
+
                         <section class="space-y-8">
                             <h2 class="text-2xl font-black text-slate-400 flex items-center gap-4 italic tracking-tighter uppercase leading-none"><i data-lucide="users" class="text-slate-600"></i> Submission Feed</h2>
                             <div class="grid md:grid-cols-3 gap-6">
                                 ${state.submissions.map(item => `
-                                    <div class="bg-slate-900/30 border border-slate-800/50 rounded-[2rem] p-6 flex flex-col h-full hover:border-slate-700 transition-all">
-                                        <div class="flex justify-between items-center mb-6"><span class="text-[10px] font-black uppercase text-slate-500 tracking-widest">${item.type === 'group' ? 'GROUP' : (item.dept || 'GEN')}</span></div>
-                                        <h4 class="text-white font-black text-sm mb-4 uppercase tracking-tight truncate">${item.innovationName}</h4>
-                                        <div class="mt-auto flex items-center justify-between pt-4 border-t border-slate-800/50">
-                                            <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest truncate max-w-[120px]">${item.type === 'group' ? item.teamName : item.name}</p>
-                                            <a href="${item.docLink}" target="_blank" class="text-blue-500 hover:text-blue-400"><i data-lucide="external-link" class="w-4 h-4"></i></a>
+                                    <div class="bg-slate-900/30 border border-slate-800/50 rounded-[2rem] p-6 flex flex-col h-full hover:border-blue-500/30 transition-all overflow-hidden group shadow-xl">
+                                        <div class="aspect-square bg-slate-950 rounded-2xl mb-6 overflow-hidden border border-slate-800">
+                                            ${item.docLink ? `<img src="${item.docLink}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">` : `<div class="w-full h-full flex items-center justify-center text-slate-800"><i data-lucide="image" class="w-12 h-12"></i></div>`}
                                         </div>
+                                        <div class="flex justify-between items-center mb-4"><span class="text-[9px] font-black uppercase text-blue-500 tracking-widest">${item.type === 'group' ? 'TEAM' : (item.dept || 'CORE')}</span></div>
+                                        <h3 class="text-xl font-black text-white mb-2 uppercase italic tracking-tighter truncate break-words">${item.innovationName}</h3>
+                                        <p class="text-slate-500 text-[10px] mb-8 uppercase tracking-[0.2em] font-black mb-4">BY ${item.type === 'group' ? item.teamName : item.name}</p>
+                                        <button onclick="showDetails('${item.id}')" class="mt-auto w-full bg-slate-950 p-4 rounded-xl border border-white/5 text-[9px] font-black text-blue-400 uppercase tracking-widest hover:text-white transition">Details & Prompt</button>
                                     </div>
                                 `).join('')}
+                                ${state.submissions.length === 0 ? '<div class="col-span-full py-24 text-center border-2 border-dashed border-slate-800 rounded-[3rem] italic text-slate-600 font-black uppercase tracking-[0.2em]">Awaiting first submission...</div>' : ''}
                             </div>
                         </section>
                     </div>
@@ -437,27 +582,38 @@
             }
 
             if (state.activeTab === 'winners') {
-                return `<div class="max-w-6xl mx-auto space-y-12 animate-in zoom-in-95 duration-500"><div class="text-center"><h2 class="text-5xl font-black text-white italic tracking-tighter uppercase leading-none">Hall of Fame</h2></div><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">${MONTHLY_RECORDS.map(item => `<div class="bg-slate-900 rounded-[2.5rem] p-10 border-2 ${item.status === 'active' ? 'border-blue-500 shadow-blue-900/40 shadow-2xl' : 'border-slate-800'} relative overflow-hidden"><div class="flex justify-between items-start mb-8"><span class="text-slate-500 font-black text-xs uppercase tracking-[0.2em]">${item.month}</span>${item.status === 'completed' ? '<i data-lucide="medal" class="text-yellow-500 w-8 h-8"></i>' : item.status === 'active' ? '<div class="w-3 h-3 rounded-full bg-blue-500 animate-ping"></div>' : ''}</div><div class="py-16 flex flex-col items-center justify-center border-2 border-dashed border-slate-800 rounded-[2.5rem]"><p class="text-slate-700 font-black text-xs uppercase tracking-widest italic leading-none">${item.status === 'active' ? 'HUNT IN PROGRESS' : 'UPCOMING'}</p></div></div>`).join('')}</div></div>`;
+                return `
+                    <div class="max-w-6xl mx-auto space-y-12 animate-in zoom-in-95 duration-500">
+                        <div class="text-center">
+                            <h2 class="text-5xl font-black text-white italic tracking-tighter uppercase leading-none">Hall of Fame</h2>
+                            <p class="text-slate-500 font-bold uppercase tracking-[0.2em] text-[10px] mt-4 italic underline underline-offset-8 decoration-blue-500/50">Celebrating the AI Transformation Journey</p>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            ${MONTHLY_RECORDS.map(item => `
+                                <div class="bg-slate-900 rounded-[2.5rem] p-10 border-2 ${item.status === 'active' ? 'border-blue-500 shadow-blue-900/40 shadow-2xl' : 'border-slate-800'} relative overflow-hidden">
+                                    <div class="flex justify-between items-start mb-8"><span class="text-slate-500 font-black text-xs uppercase tracking-[0.2em]">${item.month}</span>${item.status === 'completed' ? '<i data-lucide="medal" class="text-yellow-500 w-8 h-8"></i>' : item.status === 'active' ? '<div class="w-3 h-3 rounded-full bg-blue-500 animate-ping"></div>' : ''}</div>
+                                    <div class="py-16 flex flex-col items-center justify-center border-2 border-dashed border-slate-800 rounded-[2.5rem]"><p class="text-slate-700 font-black text-xs uppercase tracking-widest italic">${item.status === 'active' ? 'HUNT IN PROGRESS' : 'UPCOMING'}</p></div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
             }
 
             if (state.activeTab === 'admin') {
                 return `
-                    <div class="space-y-6 animate-in fade-in duration-500">
-                        <div class="flex justify-between items-end border-b border-slate-800 pb-10"><div><h2 class="text-4xl font-black text-white italic tracking-tighter leading-none uppercase">Admin Control</h2></div><button onclick="auth.signOut()" class="bg-red-600/10 text-red-500 text-[10px] font-black uppercase px-6 py-3 rounded-xl border border-red-500/20 hover:bg-red-600 hover:text-white transition-all">Sign Out</button></div>
+                    <div class="space-y-6">
+                        <div class="flex justify-between items-end border-b border-slate-800 pb-10"><div><h2 class="text-4xl font-black text-white italic uppercase tracking-tighter leading-none">Admin Control</h2></div><button onclick="logoutAdmin()" class="bg-red-600/10 text-red-500 text-[10px] font-black uppercase px-6 py-3 rounded-xl border border-red-500/20 hover:bg-red-600 hover:text-white transition-all">Sign Out</button></div>
                         <div class="overflow-hidden rounded-[2.5rem] border border-slate-800 bg-slate-900 shadow-2xl">
                             <table class="w-full text-left text-xs">
-                                <thead class="bg-slate-950 text-slate-500 uppercase font-black border-b border-slate-800"><tr><th class="p-6">Submission / Team</th><th class="p-6">Solution</th><th class="p-6">Docs</th><th class="p-6 text-center">Shortlist</th></tr></thead>
+                                <thead class="bg-slate-950 text-slate-500 uppercase font-black border-b border-slate-800"><tr><th class="p-6">Origin / Team</th><th class="p-6">Avatar Name</th><th class="p-6">Preview</th><th class="p-6 text-center">Shortlist</th></tr></thead>
                                 <tbody class="divide-y divide-slate-800">
                                     ${state.submissions.map(sub => `
                                         <tr class="hover:bg-white/5 transition">
-                                            <td class="p-6"><b>${sub.type === 'group' ? sub.teamName : sub.name}</b><br><span class="opacity-50 italic text-[10px] font-black text-blue-400 uppercase">${sub.type === 'group' ? 'Group of 2' : (sub.dept || 'Individual')}</span></td>
+                                            <td class="p-6"><b class="text-white uppercase tracking-tight">${sub.type === 'group' ? sub.teamName : sub.name}</b><br><span class="opacity-50 italic text-[10px] uppercase tracking-widest font-black text-blue-400">${sub.type === 'group' ? 'Group of 2' : (sub.dept || 'Individual')}</span></td>
                                             <td class="p-6 font-black uppercase text-blue-100">${sub.innovationName}</td>
-                                            <td class="p-6"><a href="${sub.docLink}" target="_blank" class="text-blue-500 font-black underline underline-offset-4">ACCESS</a></td>
-                                            <td class="p-6 text-center">
-                                                <button onclick="toggleShortlist('${sub.id}', ${sub.shortlisted})" class="p-4 rounded-2xl ${sub.shortlisted ? 'bg-yellow-500 text-black shadow-xl shadow-yellow-500/20' : 'bg-slate-800 text-slate-500'} active:scale-90 transition-all">
-                                                    <i data-lucide="star" class="w-6 h-6 ${sub.shortlisted ? 'fill-black' : ''}"></i>
-                                                </button>
-                                            </td>
+                                            <td class="p-6">${sub.docLink ? `<img src="${sub.docLink}" class="w-10 h-10 rounded-lg object-cover">` : '-'}</td>
+                                            <td class="p-6 text-center"><button onclick="toggleShortlist('${sub.id}', ${sub.shortlisted})" class="p-4 rounded-2xl ${sub.shortlisted ? 'bg-yellow-500 text-black shadow-yellow-500/30 shadow-xl' : 'bg-slate-800 text-slate-500'} transition-all hover:scale-110"><i data-lucide="star" class="w-6 h-6 ${sub.shortlisted ? 'fill-black' : ''}"></i></button></td>
                                         </tr>
                                     `).join('')}
                                 </tbody>
@@ -470,30 +626,107 @@
 
         function renderModal() {
             const item = state.selectedInnovation;
-            return `<div class="fixed inset-0 z-[110] bg-slate-950/98 backdrop-blur-3xl flex items-center justify-center p-6 animate-in fade-in duration-300"><div class="bg-slate-900 max-w-2xl w-full p-12 rounded-[4rem] border-2 border-blue-500/30 shadow-[0_0_100px_rgba(37,99,235,0.2)] relative max-h-[90vh] overflow-y-auto custom-card"><button onclick="closeModal()" class="absolute top-10 right-10 text-slate-500 hover:text-white transition-all hover:rotate-90"><i data-lucide="x" class="w-10 h-10"></i></button><span class="bg-blue-600/20 text-blue-400 border border-blue-400/30 px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.2em] italic">${item.type === 'group' ? 'TEAM STRATEGY' : (item.dept || 'CORE')}</span><h3 class="text-4xl font-black text-white italic tracking-tighter uppercase leading-tight mt-8 mb-6 break-words leading-none">${item.innovationName}</h3><div class="space-y-4 mb-12">${item.type === 'group' ? `<div class="flex items-center gap-3 text-slate-200 text-xs font-black uppercase tracking-widest"><i data-lucide="shield" class="text-blue-500 w-4 h-4"></i> ${item.teamName}</div><div class="p-6 bg-black/40 rounded-3xl border border-white/5 space-y-3 shadow-inner"><div class="flex items-center gap-3 text-slate-400 text-[10px] font-black uppercase tracking-widest"><i data-lucide="user" class="w-3 h-3"></i> ${item.member1Name} • ${item.member1Dept}</div><div class="flex items-center gap-3 text-slate-400 text-[10px] font-black uppercase tracking-widest"><i data-lucide="user" class="w-3 h-3"></i> ${item.member2Name} • ${item.member2Dept}</div></div>` : `<div class="flex items-center gap-3 text-slate-300 text-sm font-black uppercase tracking-widest"><i data-lucide="user" class="text-blue-500 w-4 h-4"></i> ${item.name} • ${item.email}</div>`}</div><div class="bg-black/60 rounded-[2.5rem] p-10 border border-white/5 mb-12 shadow-inner"><h4 class="text-[11px] font-black text-blue-400 uppercase tracking-[0.3em] flex items-center gap-3 mb-8 italic"><i data-lucide="zap" class="w-4 h-4 fill-blue-400"></i> Analysis & Outcome</h4><p class="text-slate-200 text-base leading-relaxed italic break-all whitespace-pre-wrap italic leading-relaxed">"${item.achievements}"</p></div><div class="flex flex-col gap-4"><a href="${item.docLink}" target="_blank" class="bg-blue-600 hover:bg-blue-500 text-white py-6 rounded-3xl font-black text-center uppercase tracking-widest text-[11px] shadow-2xl transition active:scale-95">Review Analysis Docs <i data-lucide="external-link" class="inline w-3 h-3 ml-2"></i></a></div></div></div>`;
+            return `
+                <div class="fixed inset-0 z-[110] bg-slate-950/98 backdrop-blur-3xl flex items-center justify-center p-6 animate-in fade-in duration-300">
+                    <div class="bg-slate-900 max-w-2xl w-full p-12 rounded-[4rem] border-2 border-blue-500/30 shadow-[0_0_100px_rgba(37,99,235,0.2)] relative max-h-[90vh] overflow-y-auto custom-card">
+                        <button onclick="closeModal()" class="absolute top-10 right-10 text-slate-500 hover:text-white transition-all hover:rotate-90"><i data-lucide="x" class="w-10 h-10"></i></button>
+                        <span class="bg-blue-600/20 text-blue-400 border border-blue-400/30 px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.2em] italic">ENTRY DETAIL</span>
+                        <h3 class="text-4xl font-black text-white italic tracking-tighter uppercase leading-tight mt-8 mb-6 break-words">${item.innovationName}</h3>
+                        
+                        ${item.docLink ? `<img src="${item.docLink}" class="w-full aspect-square object-cover rounded-[2rem] border-2 border-blue-500/20 mb-10 shadow-2xl">` : ''}
+
+                        <div class="space-y-4 mb-12">
+                            ${item.type === 'group' ? `
+                                <div class="flex items-center gap-3 text-slate-200 text-xs font-black uppercase tracking-widest truncate"><i data-lucide="shield" class="text-blue-500 w-4 h-4"></i> ${item.teamName}</div>
+                                <div class="p-6 bg-black/40 rounded-3xl border border-white/5 space-y-3">
+                                    <div class="flex items-center gap-3 text-slate-400 text-[10px] font-black uppercase tracking-widest truncate"><i data-lucide="user" class="w-3 h-3"></i> ${item.member1Name} • ${item.member1Dept}</div>
+                                    <div class="flex items-center gap-3 text-slate-400 text-[10px] font-black uppercase tracking-widest truncate"><i data-lucide="user" class="w-3 h-3"></i> ${item.member2Name} • ${item.member2Dept}</div>
+                                </div>
+                            ` : `
+                                <div class="flex items-center gap-3 text-slate-300 text-sm font-black uppercase tracking-widest truncate"><i data-lucide="user" class="text-blue-500 w-4 h-4"></i> ${item.name} • ${item.email}</div>
+                            `}
+                        </div>
+                        <div class="bg-black/60 rounded-[2.5rem] p-10 border border-white/5 mb-12 shadow-inner">
+                            <h4 class="text-[11px] font-black text-blue-400 uppercase tracking-[0.3em] flex items-center gap-3 mb-8"><i data-lucide="zap" class="w-4 h-4 fill-blue-400"></i> Prompt Used</h4>
+                            <p class="text-slate-200 text-base leading-relaxed italic break-words whitespace-pre-wrap">"${item.achievements}"</p>
+                        </div>
+                    </div>
+                </div>
+            `;
         }
 
         function renderAdminLogin() {
-            return `<div class="fixed inset-0 z-[100] bg-slate-950/98 backdrop-blur-2xl flex items-center justify-center p-6 animate-in zoom-in duration-300"><div class="bg-slate-900 max-w-md w-full p-12 rounded-[3rem] border-2 border-slate-800 shadow-2xl text-center custom-card"><div class="w-24 h-24 bg-blue-600/10 rounded-[2rem] flex items-center justify-center mx-auto mb-10 border border-blue-500/20 shadow-inner"><i data-lucide="lock" class="text-blue-500 w-12 h-12"></i></div><h3 class="text-3xl font-black text-white uppercase italic tracking-tighter mb-10 leading-none uppercase">Admin Verification</h3><input type="password" id="adminCode" class="w-full bg-slate-950 border-2 border-slate-800 rounded-2xl p-5 text-center text-white outline-none focus:border-blue-600 transition-all font-mono tracking-[1em] mb-10" placeholder="••••"><div class="flex gap-4"><button onclick="toggleAdminLogin()" class="flex-1 p-5 rounded-2xl border border-slate-800 text-slate-500 font-black text-[11px] uppercase tracking-[0.2em] hover:bg-slate-800 transition">ABORT</button><button onclick="authorizeAdmin()" class="flex-1 p-5 rounded-2xl bg-blue-600 text-white font-black text-[11px] uppercase tracking-[0.2em] hover:bg-blue-500 shadow-2xl transition active:scale-95 uppercase">VERIFY</button></div></div></div>`;
+            return `
+                <div class="fixed inset-0 z-[100] bg-slate-950/98 backdrop-blur-2xl flex items-center justify-center p-6 animate-in zoom-in duration-300">
+                    <div class="bg-slate-900 max-w-md w-full p-12 rounded-[3rem] border-2 border-slate-800 shadow-2xl text-center custom-card">
+                        <div class="w-24 h-24 bg-blue-600/10 rounded-[2rem] flex items-center justify-center mx-auto mb-10 border border-blue-500/20 shadow-inner"><i data-lucide="lock" class="text-blue-500 w-12 h-12"></i></div>
+                        <h3 class="text-3xl font-black text-white uppercase italic tracking-tighter mb-10">Admin Access Restricted</h3>
+                        <input type="password" id="adminCode" class="w-full bg-slate-950 border-2 border-slate-800 rounded-2xl p-5 text-center text-white outline-none focus:border-blue-600 transition-all font-mono tracking-[1em] mb-10" placeholder="••••">
+                        <div id="adminError" class="hidden text-red-500 text-[10px] font-bold uppercase mb-6 text-center"></div>
+                        <div class="flex gap-4">
+                            <button onclick="toggleAdminLogin()" class="flex-1 p-5 rounded-2xl border border-slate-800 text-slate-500 font-black text-[11px] uppercase tracking-[0.2em] hover:bg-slate-800 transition">ABORT</button>
+                            <button onclick="authorizeAdmin()" class="flex-1 p-5 rounded-2xl bg-blue-600 text-white font-black text-[11px] uppercase tracking-[0.2em] hover:bg-blue-500 shadow-2xl transition">VERIFY</button>
+                        </div>
+                    </div>
+                </div>
+            `;
         }
 
-        // --- Logic Handlers ---
+        // --- Helpers ---
         function navigate(tab) { state.activeTab = tab; updateUI(); }
         function toggleAdminLogin() { state.showAdminLogin = !state.showAdminLogin; updateUI(); }
-        async function authorizeAdmin() { 
-            const input = document.getElementById('adminCode').value;
-            if (!input) return;
-            const hashedInput = await sha256(input);
-            if (hashedInput === ADMIN_HASH) { 
-                state.isAdmin = true; state.showAdminLogin = false; state.activeTab = 'admin'; updateUI();
+        
+        async function authorizeAdmin() {
+            const code = document.getElementById('adminCode').value;
+            const hashed = await hashString(code);
+            const errEl = document.getElementById('adminError');
+            if (hashed === ADMIN_HASH) {
+                state.isAdmin = true;
+                state.showAdminLogin = false;
+                state.activeTab = 'admin';
+                updateUI();
             } else {
-                alert("Unauthorized Access.");
+                if (errEl) {
+                    errEl.innerText = "Access Denied: Invalid Security Signature";
+                    errEl.classList.remove('hidden');
+                }
             }
         }
+        
+        function logoutAdmin() { state.isAdmin = false; state.activeTab = 'dashboard'; updateUI(); }
         function closeModal() { state.selectedInnovation = null; updateUI(); }
         function showDetails(id) { state.selectedInnovation = state.submissions.find(s => s.id === id); updateUI(); }
         function setSubmissionType(type) { state.submissionType = type; updateUI(); }
         function handleFormInput(stateKey, field, value) { state[stateKey][field] = value; }
+
+        function handleFileUpload(input) {
+            const file = input.files[0];
+            if (!file) return;
+            if (file.size > 2 * 1024 * 1024) {
+                alert("File is too large! Max 2MB allowed.");
+                input.value = "";
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+                    const max_dim = 800; 
+                    if (width > height) { if (width > max_dim) { height *= max_dim / width; width = max_dim; } }
+                    else { if (height > max_dim) { width *= max_dim / height; height = max_dim; } }
+                    canvas.width = width; canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    state.formData.docLink = canvas.toDataURL('image/jpeg', 0.7);
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
 
         async function toggleShortlist(id, current) {
             try {
@@ -505,60 +738,79 @@
         async function handleFormSubmit(e) {
             e.preventDefault();
             const data = state.formData;
+            
+            let emailsToCheck = [];
+            if (state.submissionType === 'individual') {
+                emailsToCheck = [data.email];
+            } else {
+                emailsToCheck = [data.member1Email, data.member2Email];
+            }
+            
+            const invalidEmails = emailsToCheck.some(email => !email || !email.toLowerCase().endsWith('@descasio.io'));
+
+            if (invalidEmails) {
+                document.getElementById('formStatus').innerHTML = `<p class="text-red-500 text-[10px] font-black uppercase tracking-widest mt-6 bg-red-500/10 p-4 rounded-xl border border-red-500/20 text-center">All team members must use @descasio.io emails.</p>`;
+                return;
+            }
+
             try {
                 await db.collection('artifacts').doc(STABLE_APP_ID).collection('public').doc('data').collection('submissions').add({
-                    ...data, name: state.user.displayName, email: state.user.email, type: state.submissionType, shortlisted: false, timestamp: new Date().toISOString()
+                    ...data,
+                    type: state.submissionType,
+                    shortlisted: false,
+                    timestamp: new Date().toISOString()
                 });
-                state.formData = {}; state.activeTab = 'gallery'; updateUI();
+                state.formData = {}; 
+                state.activeTab = 'gallery';
+                updateUI();
             } catch (err) { console.error(err); }
         }
 
         async function handleIdeaSubmit(e) {
             e.preventDefault();
             const data = state.ideaData;
+            if (!data.email || !data.email.toLowerCase().endsWith('@descasio.io')) {
+                const ideaStatus = document.getElementById('ideaStatus');
+                if (ideaStatus) {
+                    ideaStatus.innerHTML = `<p class="text-red-500 text-[10px] font-black uppercase tracking-widest mt-4 bg-red-500/10 p-4 rounded-xl border border-red-500/20 text-center">Restricted to @descasio.io emails.</p>`;
+                }
+                return;
+            }
+
             try {
                 await db.collection('artifacts').doc(STABLE_APP_ID).collection('public').doc('data').collection('ideas').add({
-                    ...data, name: state.user.displayName, email: state.user.email, timestamp: new Date().toISOString()
+                    ...data, timestamp: new Date().toISOString()
                 });
-                state.ideaData = {}; alert("Idea synchronised with team logs!"); updateUI();
+                state.ideaData = {};
+                const status = document.createElement('div');
+                status.className = "fixed top-10 left-1/2 -translate-x-1/2 bg-emerald-600 text-white px-8 py-4 rounded-2xl font-black uppercase text-xs tracking-widest shadow-2xl z-[200]";
+                status.innerText = "Concept recorded!";
+                document.body.appendChild(status);
+                setTimeout(() => status.remove(), 3000);
+                updateUI();
             } catch (err) { console.error(err); }
         }
 
-        // --- Identity Persistence ---
         auth.onAuthStateChanged(async (user) => {
-            if (user) {
-                if (user.email.toLowerCase().endsWith('@descasio.io')) {
-                    state.user = user;
-                    state.isAuthenticating = false;
-                    updateCountdown();
-                    setInterval(() => { updateCountdown(); updateUI(); }, 30000);
+            if (!user) { await auth.signInAnonymously(); }
+            else {
+                state.user = user;
+                updateCountdown();
+                setInterval(() => { updateCountdown(); updateUI(); }, 30000);
 
-                    // Real-time Listeners
-                    db.collection('artifacts').doc(STABLE_APP_ID).collection('public').doc('data').collection('submissions')
-                      .onSnapshot((snapshot) => {
-                        state.submissions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                        state.submissions.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-                        updateUI();
-                      }, (err) => console.error("Sync Failure:", err));
+                db.collection('artifacts').doc(STABLE_APP_ID).collection('public').doc('data').collection('submissions')
+                  .onSnapshot((snapshot) => {
+                    state.submissions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    state.submissions.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                    updateUI();
+                  }, (err) => console.error(err));
 
-                    db.collection('artifacts').doc(STABLE_APP_ID).collection('public').doc('data').collection('ideas')
-                      .onSnapshot((snapshot) => {
-                        state.ideas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                        state.ideas.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-                        updateUI();
-                      }, (err) => console.error("Idea Sync Failure:", err));
-                } else {
-                    await auth.signOut();
-                    state.authError = "Restricted: @descasio.io email required.";
-                    state.user = null;
-                    state.isAuthenticating = false;
-                    renderLogin();
-                }
-            } else {
-                state.user = null;
-                // If the user isn't authenticated within 1 second of loading, show the login screen
-                // This breaks the "infinite loading" loop
-                setTimeout(() => { if (!state.user && !state.isAuthenticating) renderLogin(); }, 1200);
+                db.collection('artifacts').doc(STABLE_APP_ID).collection('public').doc('data').collection('ideas')
+                  .onSnapshot((snapshot) => {
+                    state.ideas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    state.ideas.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                    updateUI();
+                  }, (err) => console.error(err));
             }
         });
     </script>
