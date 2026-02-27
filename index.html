@@ -55,17 +55,14 @@
     </style>
 </head>
 <body class="selection:bg-blue-500/30">
-
     <div id="app">
         <div class="flex items-center justify-center min-h-screen">
             <div class="animate-pulse text-slate-500 font-bold tracking-widest uppercase italic">Initializing Cloud Hub...</div>
         </div>
     </div>
-
     <script>
         // --- EmailJS Initialization ---
         emailjs.init("LF76ppQ83bSQ3ggtK");
-
         // --- Firebase Configuration ---
         const firebaseConfig = {
             apiKey: "AIzaSyBrRmGnPm3WcK2GKQqN_lAEvJJZPgXVdxw",
@@ -75,18 +72,15 @@
             messagingSenderId: "965178905775",
             appId: "1:965178905775:web:d4741ca8f16bd242b5705a"
         };
-
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
         const STABLE_APP_ID = "descasio-innovation-hub-perpetual";
-
         // --- Data & State ---
         const DEPARTMENTS = ["Finance", "Sales", "Customer Success", "HR/Admin", "Marketing", "Strategy", "Product", "Software Engineering", "Technology Services"];
         const PREVIOUS_WINNER = { name: "Femi Olugbesan", dept: "CIO", title: "Let's Innovate Together", month: "April", avatar: "FO" };
         
         let ADMIN_HASH = "e28f7db64cfc2056566ea88b8100b9969be70080f868590301d4f0005c536d30"; 
-
         const MONTHLY_RECORDS = [
             { month: "March", winner: null, solution: null, status: "active" },
             { month: "April", winner: null, solution: null, status: "upcoming" },
@@ -99,7 +93,6 @@
             { month: "November", winner: null, solution: null, status: "upcoming" },
             { month: "December", winner: null, solution: null, status: "upcoming" },
         ];
-
         let persistedAuth = null;
         try {
             const stored = localStorage.getItem('descasio_hub_auth');
@@ -112,7 +105,6 @@
                 }
             }
         } catch(e) {}
-
         let state = {
             user: null,
             isAuthenticated: !!persistedAuth,
@@ -132,9 +124,7 @@
             ideaData: {},
             loading: false
         };
-
         const EXTERNAL_VOTING_URL = "https://surveymars.com/q/7JKogeul9";
-
         // --- Helper for Hashing ---
         async function hashString(str) {
             const encoder = new TextEncoder();
@@ -143,7 +133,6 @@
             const hashArray = Array.from(new Uint8Array(hashBuffer));
             return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
         }
-
         // --- Authentication Logic ---
         async function requestOtp() {
             const email = document.getElementById('gatewayEmail').value.trim().toLowerCase();
@@ -151,13 +140,10 @@
                 showGatewayError("Access restricted to @descasio.io email addresses.");
                 return;
             }
-
             state.loading = true;
             updateUI();
-
             const otp = Math.floor(100000 + Math.random() * 900000).toString();
             const expiry = Date.now() + (60 * 60 * 1000); 
-
             try {
                 await emailjs.send("service_v9ysmxt", "template_20x7ujf", {
                     to_email: email,
@@ -176,7 +162,6 @@
                 updateUI();
             }
         }
-
         async function verifyOtp() {
             const entered = document.getElementById('gatewayOtp').value.trim();
             if (Date.now() > state.otpExpiry) {
@@ -192,9 +177,7 @@
                         expiry: Date.now() + (30 * 24 * 60 * 60 * 1000)
                     }));
                 } catch(e) {}
-
                 updateUI();
-
                 if (state.user) {
                     try {
                         await db.collection('artifacts').doc(STABLE_APP_ID)
@@ -210,7 +193,6 @@
                 showGatewayError("Invalid access code.");
             }
         }
-
         function showGatewayError(msg) {
             const errEl = document.getElementById('gatewayError');
             if (errEl) {
@@ -218,7 +200,6 @@
                 errEl.classList.remove('hidden');
             }
         }
-
         // --- Countdown Logic ---
         function updateCountdown() {
             const now = new Date();
@@ -236,17 +217,14 @@
                 };
             }
         }
-
         function updateUI() {
             const app = document.getElementById('app');
             if (!state.user) return;
-
             if (!state.isAuthenticated) {
                 app.innerHTML = renderLoginGateway();
                 lucide.createIcons();
                 return;
             }
-
             app.innerHTML = `
                 <nav class="sticky top-0 z-50 bg-slate-950/80 backdrop-blur-xl border-b border-slate-800 px-6 py-4">
                     <div class="max-w-7xl mx-auto flex justify-between items-center">
@@ -270,14 +248,11 @@
                         </div>
                     </div>
                 </nav>
-
                 <main class="max-w-7xl mx-auto p-6 md:p-8 min-h-[70vh]">
                     ${renderTabContent()}
                 </main>
-
                 ${state.selectedInnovation ? renderModal() : ''}
                 ${state.showAdminLogin ? renderAdminLogin() : ''}
-
                 <footer class="max-w-7xl mx-auto p-8 border-t border-slate-900 flex flex-col items-center gap-2 mt-20 text-center">
                     <p class="text-blue-400 text-sm font-black uppercase tracking-[0.15em] mb-4">
                         For Support and Feedback, email ai-innovation-hub@descasio.io
@@ -290,22 +265,19 @@
             `;
             lucide.createIcons();
         }
-
         function renderLoginGateway() {
             return `
                 <div class="min-h-screen bg-[#020617] flex items-center justify-center p-6 relative overflow-hidden">
                     <div class="absolute -top-20 -left-20 w-96 h-96 bg-blue-900/20 blur-[120px] rounded-full"></div>
                     <div class="absolute -bottom-20 -right-20 w-96 h-96 bg-indigo-900/20 blur-[120px] rounded-full"></div>
-
                     <div class="w-full max-w-md bg-[#0f172a] rounded-[2.5rem] border border-slate-800 p-12 shadow-2xl relative z-10 text-center">
                         <div class="w-20 h-20 bg-blue-600 rounded-3xl flex items-center justify-center mx-auto mb-10 shadow-lg shadow-blue-500/20">
                             <i data-lucide="zap" class="text-white w-10 h-10"></i>
                         </div>
                         <h2 class="text-white text-4xl font-black italic tracking-tighter uppercase mb-2">DESCASIO</h2>
                         <p class="text-blue-500 text-[10px] font-black uppercase tracking-[0.3em] mb-12">Innovation Hub Gateway</p>
-
                         ${state.gatewayView === 'email' ? `
-                            <p class="text-slate-400 text-sm italic mb-10 px-4 leading-relaxed">Enter your @descasio.io email to receive a 2-hour access code.</p>
+                            <p class="text-slate-400 text-sm italic mb-10 px-4 leading-relaxed">Enter your @descasio.io email to receive a 1-hour access code.</p>
                             <input id="gatewayEmail" type="email" class="w-full bg-slate-950 border border-slate-800 rounded-2xl p-5 text-center text-white outline-none focus:ring-2 ring-blue-600 font-bold mb-6" placeholder="name@descasio.io" value="${state.authEmail}">
                             <div id="gatewayError" class="hidden text-red-500 text-[10px] font-bold uppercase mb-6"></div>
                             <button onclick="requestOtp()" class="w-full bg-white text-black font-black py-5 rounded-2xl uppercase tracking-widest text-[11px] hover:bg-blue-50 transition shadow-xl active:scale-[0.98] flex items-center justify-center gap-3">
@@ -322,7 +294,6 @@
                 </div>
             `;
         }
-
         function renderTabContent() {
             if (state.activeTab === 'dashboard') {
                 return `
@@ -353,7 +324,6 @@
                                 </div>
                             </div>
                         </div>
-
                         <!-- Restore Submissions Recorded Block -->
                         <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 flex items-center gap-4 border-l-4 border-l-blue-500 max-sm shadow-xl">
                             <div class="w-12 h-12 bg-slate-800 rounded-2xl flex items-center justify-center"><i data-lucide="target" class="text-emerald-400"></i></div>
@@ -362,7 +332,6 @@
                     </div>
                 `;
             }
-
             if (state.activeTab === 'ideahub') {
                 return `
                     <div class="max-w-5xl mx-auto space-y-12">
@@ -397,7 +366,6 @@
                     </div>
                 `;
             }
-
             if (state.activeTab === 'challenge') {
                 return `
                     <div class="max-w-4xl mx-auto space-y-12 animate-in slide-in-from-bottom duration-500">
@@ -419,7 +387,6 @@
                                 <p class="text-4xl font-black text-white italic tracking-tighter">5 Points</p>
                             </div>
                         </div>
-
                         <!-- Key Criteria -->
                         <div class="bg-slate-900 border border-slate-800 p-8 rounded-3xl shadow-xl">
                             <h3 class="text-2xl font-black text-white mb-6 uppercase flex items-center gap-3"><i data-lucide="check-circle" class="text-emerald-500"></i> Key Criteria</h3>
@@ -443,7 +410,6 @@
                                         </div>
                                     </div>
                                 </li>
-
                                 <!-- 2. Value and Personality -->
                                 <li class="flex items-start gap-5 group">
                                     <div class="mt-1 bg-blue-500/10 text-blue-400 p-2 rounded-lg border border-blue-500/20 group-hover:bg-blue-500 group-hover:text-white transition-all duration-300">
@@ -471,7 +437,6 @@
                                         </div>
                                     </div>
                                 </li>
-
                                 <!-- 3. Prompt Detail -->
                                 <li class="flex items-start gap-5 group">
                                     <div class="mt-1 bg-blue-500/10 text-blue-400 p-2 rounded-lg border border-blue-500/20 group-hover:bg-blue-500 group-hover:text-white transition-all duration-300">
@@ -489,7 +454,6 @@
                                 </li>
                             </ul>
                         </div>
-
                         <div class="bg-slate-900 border-2 border-blue-500/20 rounded-[3rem] p-12 shadow-2xl">
                             <h3 class="text-3xl font-black text-white mb-10 italic uppercase tracking-tighter flex items-center gap-3"><i data-lucide="plus-circle" class="text-blue-500"></i> Share Your Submission</h3>
                             <div class="flex gap-4 mb-10 bg-slate-950 p-2 rounded-2xl border border-slate-800 max-w-md">
@@ -507,7 +471,6 @@
                                     <div class="space-y-8 animate-in slide-in-from-top-2">
                                         <div class="space-y-2"><label class="text-[10px] font-black text-slate-500 uppercase ml-1">Team Name</label><input required oninput="handleFormInput('formData', 'teamName', this.value)" value="${state.formData.teamName || ''}" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-black uppercase italic" placeholder="THE DESCASIO AVENGERS"></div>
                                         
-                                        <!-- Restore Right Team Member Form (2 Members) -->
                                         <div class="grid md:grid-cols-2 gap-6 p-8 bg-slate-950 rounded-3xl border border-slate-800">
                                             <div class="col-span-full border-b border-slate-800 pb-3 mb-3"><span class="text-[10px] font-black text-blue-500 uppercase">Team Member 01</span></div>
                                             <div class="space-y-2">
@@ -526,7 +489,6 @@
                                                 </select>
                                             </div>
                                         </div>
-
                                         <div class="grid md:grid-cols-2 gap-6 p-8 bg-slate-950 rounded-3xl border border-slate-800">
                                             <div class="col-span-full border-b border-slate-800 pb-3 mb-3"><span class="text-[10px] font-black text-blue-500 uppercase">Team Member 02</span></div>
                                             <div class="space-y-2">
@@ -563,12 +525,10 @@
                     </div>
                 `;
             }
-
             if (state.activeTab === 'gallery') {
                 const shortlisted = state.submissions.filter(s => s.shortlisted);
                 return `
                     <div class="space-y-12 animate-in fade-in">
-                        <!-- Restore Shortlisted for Voting Section -->
                         <section class="space-y-8">
                             <div class="flex flex-col md:flex-row md:items-center justify-between gap-8 border-b border-slate-800 pb-10">
                                 <div><h2 class="text-4xl font-black text-white italic tracking-tighter uppercase underline decoration-blue-500 decoration-8 underline-offset-8">Shortlisted for Voting</h2></div>
@@ -584,7 +544,9 @@
                                         </div>
                                         <div class="flex justify-between items-center mb-4"><span class="bg-blue-600/20 text-blue-400 border border-blue-400/30 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest">${item.type === 'group' ? 'TEAM' : (item.dept || 'INNOVATION')}</span></div>
                                         <h3 class="text-2xl font-black text-white mb-3 uppercase italic tracking-tighter break-words">${item.innovationName}</h3>
-                                        <p class="text-slate-500 text-[10px] mb-8 uppercase tracking-[0.2em] font-black truncate">BY ${item.type === 'group' ? item.teamName : item.name}</p>
+                                        <p class="text-slate-500 text-[10px] mb-8 uppercase tracking-[0.2em] font-black truncate">
+                                            BY ${item.type === 'group' ? item.teamName : `${item.name} • ${item.dept || 'CORE'}`}
+                                        </p>
                                         <button onclick="showDetails('${item.id}')" class="mt-auto w-full bg-slate-950 p-4 rounded-xl border border-white/5 text-[9px] font-black text-blue-400 uppercase tracking-widest hover:text-white transition">Details & Prompt</button>
                                         <div class="mt-6 pt-6 border-t border-slate-800 text-center"><p class="text-[9px] font-black text-slate-600 uppercase tracking-[0.3em]">Verified Solution Entry</p></div>
                                     </div>
@@ -592,7 +554,6 @@
                                 ${shortlisted.length === 0 ? '<div class="col-span-full py-24 text-center border-2 border-dashed border-slate-800 rounded-[3rem] italic text-slate-600 font-black uppercase tracking-[0.2em]">Admin verification in progress...</div>' : ''}
                             </div>
                         </section>
-
                         <section class="space-y-8">
                             <h2 class="text-2xl font-black text-slate-400 flex items-center gap-4 italic tracking-tighter uppercase leading-none"><i data-lucide="users" class="text-slate-600"></i> Submission Feed</h2>
                             <div class="grid md:grid-cols-3 gap-6">
@@ -603,7 +564,9 @@
                                         </div>
                                         <div class="flex justify-between items-center mb-4"><span class="text-[9px] font-black uppercase text-blue-500 tracking-widest">${item.type === 'group' ? 'TEAM' : (item.dept || 'CORE')}</span></div>
                                         <h3 class="text-xl font-black text-white mb-2 uppercase italic tracking-tighter truncate break-words">${item.innovationName}</h3>
-                                        <p class="text-slate-500 text-[10px] mb-8 uppercase tracking-[0.2em] font-black mb-4">BY ${item.type === 'group' ? item.teamName : item.name}</p>
+                                        <p class="text-slate-500 text-[10px] uppercase tracking-[0.2em] font-black mb-8 truncate">
+                                            BY ${item.type === 'group' ? item.teamName : `${item.name} • ${item.dept || 'CORE'}`}
+                                        </p>
                                         <button onclick="showDetails('${item.id}')" class="mt-auto w-full bg-slate-950 p-4 rounded-xl border border-white/5 text-[9px] font-black text-blue-400 uppercase tracking-widest hover:text-white transition">Details & Prompt</button>
                                     </div>
                                 `).join('')}
@@ -613,7 +576,6 @@
                     </div>
                 `;
             }
-
             if (state.activeTab === 'winners') {
                 return `
                     <div class="max-w-6xl mx-auto space-y-12 animate-in zoom-in-95 duration-500">
@@ -632,7 +594,6 @@
                     </div>
                 `;
             }
-
             if (state.activeTab === 'admin') {
                 return `
                     <div class="space-y-6">
@@ -656,7 +617,6 @@
                 `;
             }
         }
-
         function renderModal() {
             const item = state.selectedInnovation;
             return `
@@ -667,7 +627,6 @@
                         <h3 class="text-4xl font-black text-white italic tracking-tighter uppercase leading-tight mt-8 mb-6 break-words">${item.innovationName}</h3>
                         
                         ${item.docLink ? `<img src="${item.docLink}" class="w-full aspect-square object-cover rounded-[2rem] border-2 border-blue-500/20 mb-10 shadow-2xl">` : ''}
-
                         <div class="space-y-4 mb-12">
                             ${item.type === 'group' ? `
                                 <div class="flex items-center gap-3 text-slate-200 text-xs font-black uppercase tracking-widest truncate"><i data-lucide="shield" class="text-blue-500 w-4 h-4"></i> ${item.teamName}</div>
@@ -677,6 +636,7 @@
                                 </div>
                             ` : `
                                 <div class="flex items-center gap-3 text-slate-300 text-sm font-black uppercase tracking-widest truncate"><i data-lucide="user" class="text-blue-500 w-4 h-4"></i> ${item.name} • ${item.email}</div>
+                                <div class="flex items-center gap-3 text-slate-400 text-[10px] font-black uppercase tracking-widest px-1"><i data-lucide="briefcase" class="w-3 h-3"></i> ${item.dept}</div>
                             `}
                         </div>
                         <div class="bg-black/60 rounded-[2.5rem] p-10 border border-white/5 mb-12 shadow-inner">
@@ -687,7 +647,6 @@
                 </div>
             `;
         }
-
         function renderAdminLogin() {
             return `
                 <div class="fixed inset-0 z-[100] bg-slate-950/98 backdrop-blur-2xl flex items-center justify-center p-6 animate-in zoom-in duration-300">
@@ -704,11 +663,9 @@
                 </div>
             `;
         }
-
         // --- Helpers ---
         function navigate(tab) { state.activeTab = tab; updateUI(); }
         function toggleAdminLogin() { state.showAdminLogin = !state.showAdminLogin; updateUI(); }
-        
         async function authorizeAdmin() {
             const code = document.getElementById('adminCode').value;
             const hashed = await hashString(code);
@@ -725,13 +682,11 @@
                 }
             }
         }
-        
         function logoutAdmin() { state.isAdmin = false; state.activeTab = 'dashboard'; updateUI(); }
         function closeModal() { state.selectedInnovation = null; updateUI(); }
         function showDetails(id) { state.selectedInnovation = state.submissions.find(s => s.id === id); updateUI(); }
         function setSubmissionType(type) { state.submissionType = type; updateUI(); }
         function handleFormInput(stateKey, field, value) { state[stateKey][field] = value; }
-
         function handleFileUpload(input) {
             const file = input.files[0];
             if (!file) return;
@@ -740,7 +695,6 @@
                 input.value = "";
                 return;
             }
-            
             const reader = new FileReader();
             reader.onload = (e) => {
                 const img = new Image();
@@ -760,32 +714,26 @@
             };
             reader.readAsDataURL(file);
         }
-
         async function toggleShortlist(id, current) {
             try {
                 const docRef = db.collection('artifacts').doc(STABLE_APP_ID).collection('public').doc('data').collection('submissions').doc(id);
                 await docRef.update({ shortlisted: !current });
             } catch (e) { console.error(e); }
         }
-
         async function handleFormSubmit(e) {
             e.preventDefault();
             const data = state.formData;
-            
             let emailsToCheck = [];
             if (state.submissionType === 'individual') {
                 emailsToCheck = [data.email];
             } else {
                 emailsToCheck = [data.member1Email, data.member2Email];
             }
-            
             const invalidEmails = emailsToCheck.some(email => !email || !email.toLowerCase().endsWith('@descasio.io'));
-
             if (invalidEmails) {
                 document.getElementById('formStatus').innerHTML = `<p class="text-red-500 text-[10px] font-black uppercase tracking-widest mt-6 bg-red-500/10 p-4 rounded-xl border border-red-500/20 text-center">All team members must use @descasio.io emails.</p>`;
                 return;
             }
-
             try {
                 await db.collection('artifacts').doc(STABLE_APP_ID).collection('public').doc('data').collection('submissions').add({
                     ...data,
@@ -798,7 +746,6 @@
                 updateUI();
             } catch (err) { console.error(err); }
         }
-
         async function handleIdeaSubmit(e) {
             e.preventDefault();
             const data = state.ideaData;
@@ -809,7 +756,6 @@
                 }
                 return;
             }
-
             try {
                 await db.collection('artifacts').doc(STABLE_APP_ID).collection('public').doc('data').collection('ideas').add({
                     ...data, timestamp: new Date().toISOString()
@@ -823,18 +769,15 @@
                 updateUI();
             } catch (err) { console.error(err); }
         }
-
         auth.onAuthStateChanged(async (user) => {
             if (!user) { await auth.signInAnonymously(); }
             else {
                 state.user = user;
-                
                 if (!state.isAuthenticated) {
                     try {
                         const sessionDoc = await db.collection('artifacts').doc(STABLE_APP_ID)
                             .collection('users').doc(user.uid)
                             .collection('profile').doc('session').get();
-                            
                         if (sessionDoc.exists && sessionDoc.data().authenticated) {
                             const data = sessionDoc.data();
                             if (new Date().getTime() - data.timestamp < (30 * 24 * 60 * 60 * 1000)) {
@@ -844,24 +787,20 @@
                         }
                     } catch(e) { console.error(e); }
                 }
-
                 updateCountdown();
                 setInterval(() => { updateCountdown(); updateUI(); }, 30000);
-
                 db.collection('artifacts').doc(STABLE_APP_ID).collection('public').doc('data').collection('submissions')
                   .onSnapshot((snapshot) => {
                     state.submissions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                     state.submissions.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
                     updateUI();
                   }, (err) => console.error(err));
-
                 db.collection('artifacts').doc(STABLE_APP_ID).collection('public').doc('data').collection('ideas')
                   .onSnapshot((snapshot) => {
                     state.ideas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                     state.ideas.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
                     updateUI();
                   }, (err) => console.error(err));
-                  
                 updateUI();
             }
         });
