@@ -83,7 +83,7 @@
 
         // --- Data & State ---
         const DEPARTMENTS = ["Finance", "Sales", "Customer Success", "HR/Admin", "Marketing", "Strategy", "Product", "Software Engineering", "Technology Services"];
-        const PREVIOUS_WINNER = { name: "Femi Olugbesan", dept: "CIO", title: "Champioining AI", month: "April", avatar: "FO" };
+        const PREVIOUS_WINNER = { name: "Femi Olugbesan", dept: "CIO", title: "Let's Innovate Together", month: "April", avatar: "FO" };
         
         let ADMIN_HASH = "e28f7db64cfc2056566ea88b8100b9969be70080f868590301d4f0005c536d30"; 
 
@@ -100,11 +100,24 @@
             { month: "December", winner: null, solution: null, status: "upcoming" },
         ];
 
+        let persistedAuth = null;
+        try {
+            const stored = localStorage.getItem('descasio_hub_auth');
+            if (stored) {
+                const parsed = JSON.parse(stored);
+                if (parsed.expiry > Date.now()) {
+                    persistedAuth = parsed;
+                } else {
+                    localStorage.removeItem('descasio_hub_auth');
+                }
+            }
+        } catch(e) {}
+
         let state = {
             user: null,
-            isAuthenticated: false,
+            isAuthenticated: !!persistedAuth,
             gatewayView: 'email', 
-            authEmail: '',
+            authEmail: persistedAuth ? persistedAuth.email : '',
             generatedOtp: null,
             otpExpiry: null,
             activeTab: 'dashboard',
@@ -164,7 +177,7 @@
             }
         }
 
-        function verifyOtp() {
+        async function verifyOtp() {
             const entered = document.getElementById('gatewayOtp').value.trim();
             if (Date.now() > state.otpExpiry) {
                 showGatewayError("Code has expired. Please request a new one.");
@@ -172,7 +185,27 @@
             }
             if (entered === state.generatedOtp) {
                 state.isAuthenticated = true;
+                
+                try {
+                    localStorage.setItem('descasio_hub_auth', JSON.stringify({
+                        email: state.authEmail,
+                        expiry: Date.now() + (30 * 24 * 60 * 60 * 1000)
+                    }));
+                } catch(e) {}
+
                 updateUI();
+
+                if (state.user) {
+                    try {
+                        await db.collection('artifacts').doc(STABLE_APP_ID)
+                            .collection('users').doc(state.user.uid)
+                            .collection('profile').doc('session').set({
+                                email: state.authEmail,
+                                authenticated: true,
+                                timestamp: new Date().getTime()
+                            });
+                    } catch(e) { console.error("Firestore persistence failed", e); }
+                }
             } else {
                 showGatewayError("Invalid access code.");
             }
@@ -272,7 +305,7 @@
                         <p class="text-blue-500 text-[10px] font-black uppercase tracking-[0.3em] mb-12">Innovation Hub Gateway</p>
 
                         ${state.gatewayView === 'email' ? `
-                            <p class="text-slate-400 text-sm italic mb-10 px-4 leading-relaxed">Enter your @descasio.io email to receive a 24-hour access code.</p>
+                            <p class="text-slate-400 text-sm italic mb-10 px-4 leading-relaxed">Enter your @descasio.io email to receive a 2-hour access code.</p>
                             <input id="gatewayEmail" type="email" class="w-full bg-slate-950 border border-slate-800 rounded-2xl p-5 text-center text-white outline-none focus:ring-2 ring-blue-600 font-bold mb-6" placeholder="name@descasio.io" value="${state.authEmail}">
                             <div id="gatewayError" class="hidden text-red-500 text-[10px] font-bold uppercase mb-6"></div>
                             <button onclick="requestOtp()" class="w-full bg-white text-black font-black py-5 rounded-2xl uppercase tracking-widest text-[11px] hover:bg-blue-50 transition shadow-xl active:scale-[0.98] flex items-center justify-center gap-3">
@@ -308,7 +341,7 @@
                                     </div>
                                 </div>
                                 <div class="bg-slate-900/40 backdrop-blur-xl border border-white/10 p-6 rounded-3xl">
-                                    <h3 class="flex items-center gap-2 text-blue-200 font-bold mb-6 text-xs uppercase tracking-widest"><i data-lucide="trophy" class="text-yellow-400 w-4 h-4"></i> Previous Innovator</h3>
+                                    <h3 class="flex items-center gap-2 text-blue-200 font-bold mb-6 text-xs uppercase tracking-widest"><i data-lucide="trophy" class="text-yellow-400 w-4 h-4"></i> Executive Sponsor</h3>
                                     <div class="flex items-center gap-4 mb-4">
                                         <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white font-black text-2xl shadow-xl">${PREVIOUS_WINNER.avatar}</div>
                                         <div>
@@ -795,6 +828,23 @@
             if (!user) { await auth.signInAnonymously(); }
             else {
                 state.user = user;
+                
+                if (!state.isAuthenticated) {
+                    try {
+                        const sessionDoc = await db.collection('artifacts').doc(STABLE_APP_ID)
+                            .collection('users').doc(user.uid)
+                            .collection('profile').doc('session').get();
+                            
+                        if (sessionDoc.exists && sessionDoc.data().authenticated) {
+                            const data = sessionDoc.data();
+                            if (new Date().getTime() - data.timestamp < (30 * 24 * 60 * 60 * 1000)) {
+                                state.isAuthenticated = true;
+                                state.authEmail = data.email;
+                            }
+                        }
+                    } catch(e) { console.error(e); }
+                }
+
                 updateCountdown();
                 setInterval(() => { updateCountdown(); updateUI(); }, 30000);
 
@@ -811,6 +861,8 @@
                     state.ideas.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
                     updateUI();
                   }, (err) => console.error(err));
+                  
+                updateUI();
             }
         });
     </script>
