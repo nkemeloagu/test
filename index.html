@@ -336,9 +336,9 @@
             if (state.activeTab === 'ideahub') {
                 return `
                     <div class="max-w-5xl mx-auto space-y-12">
-                        <div class="text-center"><h2 class="text-4xl font-black text-white italic uppercase tracking-tighter">AI Idea Crowdsourcing</h2><p class="text-slate-500 font-bold uppercase tracking-widest text-xs mt-2">What AI solutions should we build next?</p></div>
+                        <div class="text-center"><h2 class="text-4xl font-black text-white italic uppercase tracking-tighter">Idea Crowdsourcing</h2><p class="text-slate-500 font-bold uppercase tracking-widest text-xs mt-2">What solutions should we build next?</p></div>
                         <div class="bg-slate-900 border border-blue-500/10 rounded-[2.5rem] p-10 max-w-2xl mx-auto shadow-2xl custom-card">
-                            <h3 class="text-2xl font-black text-white mb-8 italic uppercase tracking-tighter flex items-center gap-3"><i data-lucide="lightbulb" class="text-yellow-400"></i> Pitch an AI Concept</h3>
+                            <h3 class="text-2xl font-black text-white mb-8 italic uppercase tracking-tighter flex items-center gap-3"><i data-lucide="lightbulb" class="text-yellow-400"></i> Pitch a Concept</h3>
                             <form onsubmit="handleIdeaSubmit(event)" class="space-y-6">
                                 <div class="grid md:grid-cols-2 gap-6">
                                     <input required oninput="handleFormInput('ideaData', 'name', this.value)" value="${state.ideaData.name || ''}" class="bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-bold text-sm" placeholder="Full Name">
