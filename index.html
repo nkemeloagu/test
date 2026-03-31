@@ -56,6 +56,15 @@
         .rank-badge-1 { background: linear-gradient(to bottom, #fde047, #ca8a04); color: #422006; }
         .rank-badge-2 { background: linear-gradient(to bottom, #e2e8f0, #94a3b8); color: #0f172a; }
         .rank-badge-3 { background: linear-gradient(to bottom, #fb923c, #c2410c); color: #431407; }
+
+        .floating-avatar {
+            animation: float 6s ease-in-out infinite;
+        }
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
     </style>
 </head>
 <body class="selection:bg-blue-500/30">
@@ -83,11 +92,12 @@
         
         // --- Data & State ---
         const DEPARTMENTS = ["Finance", "Sales", "Customer Success", "HR/Admin", "Marketing", "Strategy", "Product", "Software Engineering", "Technology Services"];
-        const PREVIOUS_WINNER = { name: "Femi Olugbesan", dept: "CIO", title: "Efficiency Lead", month: "April", avatar: "FO" };
+        const PREVIOUS_WINNER = { name: "Michael Oredunni", dept: "Marketing", title: "Efficiency Lead", month: "April", avatar: "MO" };
+        const HUB_AVATAR = "https://ik.imagekit.io/vgflfdcic/AI%20INNOVATOR/Mesca.png";
         
         let ADMIN_HASH = "e28f7db64cfc2056566ea88b8100b9969be70080f868590301d4f0005c536d30"; 
         const MONTHLY_RECORDS = [
-            { month: "March", winner: "Round 1 Winner", solution: "Descasio Avatar", status: "completed" },
+            { month: "March", winner: "Michael Oredunni", solution: "Round 1 Top Scorer", status: "completed", image: "https://ik.imagekit.io/vgflfdcic/AI%20INNOVATOR/Media.png" },
             { month: "April", winner: null, solution: null, status: "active" },
             { month: "May", winner: null, solution: null, status: "upcoming" },
             { month: "June", winner: null, solution: null, status: "upcoming" },
@@ -97,6 +107,12 @@
             { month: "October", winner: null, solution: null, status: "upcoming" },
             { month: "November", winner: null, solution: null, status: "upcoming" },
             { month: "December", winner: null, solution: null, status: "upcoming" },
+        ];
+
+        const ROUND_1_STANDINGS = [
+            { name: "Michael Oredunni", email: "michael.oredunni@descasio.io", dept: "Marketing", r1Score: 3, cumulativeScore: 3, round: 1 },
+            { name: "Anthony Olise", email: "anthony.olise@descasio.io", dept: "Finance", r1Score: 2, cumulativeScore: 2, round: 1 },
+            { name: "Kehinde Onifade", email: "kehinde.onifade@descasio.io", dept: "Software Engineering", r1Score: 1, cumulativeScore: 1, round: 1 }
         ];
         
         let persistedAuth = null;
@@ -123,7 +139,7 @@
             submissionType: 'individual',
             submissions: [],
             ideas: [],
-            leaderboard: [],
+            leaderboard: [...ROUND_1_STANDINGS],
             selectedInnovation: null,
             selectedIdea: null,
             isAdmin: false,
@@ -136,7 +152,6 @@
         
         const EXTERNAL_VOTING_URL = "https://surveymars.com";
         
-        // --- Helper for Hashing ---
         async function hashString(str) {
             const encoder = new TextEncoder();
             const data = encoder.encode(str);
@@ -145,7 +160,6 @@
             return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
         }
         
-        // --- Authentication Logic ---
         async function requestOtp() {
             const email = document.getElementById('gatewayEmail').value.trim().toLowerCase();
             if (!email.endsWith('@descasio.io')) {
@@ -183,7 +197,6 @@
             }
             if (entered === state.generatedOtp) {
                 state.isAuthenticated = true;
-                
                 try {
                     localStorage.setItem('descasio_hub_auth', JSON.stringify({
                         email: state.authEmail,
@@ -215,10 +228,8 @@
             }
         }
         
-        // --- Countdown Logic ---
         function updateCountdown() {
             const now = new Date();
-            // Reset to April 22nd 2026
             const targetDate = new Date(2026, 3, 22, 23, 59, 59); 
             const diff = targetDate - now;
             
@@ -319,36 +330,69 @@
             if (state.activeTab === 'dashboard') {
                 const round2Count = state.submissions.filter(s => s.round === 2).length;
                 return `
-                    <div class="space-y-8 animate-in fade-in">
-                        <div class="relative p-8 rounded-3xl hero-gradient overflow-hidden shadow-2xl border border-white/5">
-                            <div class="grid md:grid-cols-2 gap-8 items-center relative z-10">
-                                <div>
-                                    <span class="bg-blue-500/20 text-blue-400 border border-blue-500/30 px-3 py-1 rounded-full text-[10px] uppercase font-bold tracking-widest">Round 2 Active</span>
-                                    <h2 class="text-5xl font-black mt-6 mb-4 text-white leading-none italic tracking-tighter uppercase">Efficiency at Descasio</h2>
-                                    <p class="text-blue-100 text-lg mb-8 max-w-lg opacity-80">Efficiency at Descasio is built on our ability to transform complex problems into seamless solutions. Use the PLUGIQ AI Designer to build an end-to-end workflow that address three specific organizational bottlenecks at Descasio.</p>
-                                    <div class="flex flex-wrap gap-4 items-center">
-                                        <button onclick="navigate('challenge')" class="bg-white text-blue-900 px-8 py-4 rounded-2xl font-black uppercase text-xs tracking-widest hover:scale-105 transition shadow-2xl">The Brief <i data-lucide="chevron-right" class="inline w-4 h-4"></i></button>
-                                        <div class="bg-black/20 backdrop-blur-md px-6 py-4 rounded-2xl border border-white/10 flex items-center gap-4 text-white">
-                                            <div class="text-center"><span class="block text-[8px] opacity-60 font-black uppercase">${state.timeLeft.label}</span><span class="font-mono text-2xl font-bold">${state.timeLeft.days}d : ${state.timeLeft.hours}h : ${state.timeLeft.mins}m</span></div>
+                    <div class="space-y-12 animate-in fade-in">
+                        <!-- Main Hero with Avatar -->
+                        <div class="relative p-10 md:p-14 rounded-[3.5rem] hero-gradient overflow-hidden shadow-[0_0_100px_rgba(30,58,138,0.3)] border border-white/10 group">
+                            <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20"></div>
+                            <div class="grid lg:grid-cols-12 gap-12 items-center relative z-10">
+                                <div class="lg:col-span-7 space-y-8">
+                                    <div>
+                                        <span class="inline-flex items-center gap-2 bg-blue-500/20 text-blue-400 border border-blue-500/30 px-4 py-1.5 rounded-full text-[10px] uppercase font-black tracking-[0.2em]">
+                                            <span class="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span> Round 2 Mission
+                                        </span>
+                                        <h2 class="text-5xl md:text-7xl font-black mt-8 mb-6 text-white leading-[0.9] italic tracking-tighter uppercase">Efficiency at Descasio</h2>
+                                        <p class="text-blue-100/80 text-xl leading-relaxed max-w-xl font-medium italic">
+                                            Efficiency at Descasio is built on our ability to transform complex problems into seamless solutions. Use the PLUGIQ AI Designer to build an end-to-end workflow that address three specific organizational bottlenecks.
+                                        </p>
+                                    </div>
+                                    <div class="flex flex-wrap gap-6 items-center">
+                                        <button onclick="navigate('challenge')" class="bg-white text-blue-900 px-10 py-5 rounded-[2rem] font-black uppercase text-xs tracking-widest hover:scale-105 hover:bg-blue-50 transition-all shadow-2xl active:scale-95">The Brief <i data-lucide="arrow-right" class="inline w-4 h-4 ml-2"></i></button>
+                                        <div class="bg-black/40 backdrop-blur-xl px-8 py-5 rounded-[2rem] border border-white/10 flex items-center gap-6 text-white">
+                                            <div class="text-center">
+                                                <span class="block text-[9px] opacity-60 font-black uppercase tracking-widest">${state.timeLeft.label}</span>
+                                                <span class="font-mono text-2xl font-black">${state.timeLeft.days}d : ${state.timeLeft.hours}h : ${state.timeLeft.mins}m</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="bg-slate-900/40 backdrop-blur-xl border border-white/10 p-6 rounded-3xl">
-                                    <h3 class="flex items-center gap-2 text-blue-200 font-bold mb-6 text-xs uppercase tracking-widest"><i data-lucide="trophy" class="text-yellow-400 w-4 h-4"></i> Round 1 Champion</h3>
-                                    <div class="flex items-center gap-4 mb-4">
-                                        <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white font-black text-2xl shadow-xl">${PREVIOUS_WINNER.avatar}</div>
-                                        <div>
-                                            <p class="font-black text-white text-xl uppercase tracking-tighter">${PREVIOUS_WINNER.name}</p>
-                                            <p class="text-blue-400 text-xs font-bold uppercase tracking-widest">${PREVIOUS_WINNER.dept}</p>
+                                <div class="lg:col-span-5 flex justify-center">
+                                    <div class="relative w-72 h-72 md:w-96 md:h-96 floating-avatar">
+                                        <div class="absolute inset-0 bg-blue-600/30 blur-[80px] rounded-full scale-75"></div>
+                                        <div class="relative w-full h-full bg-slate-900/60 backdrop-blur-3xl rounded-[4rem] border border-white/20 p-4 shadow-2xl overflow-hidden ring-8 ring-blue-500/10">
+                                            <img src="${HUB_AVATAR}" class="w-full h-full object-cover rounded-[3rem]" alt="Hub Avatar Mesca">
+                                            <div class="absolute bottom-6 left-6 right-6 bg-blue-600/80 backdrop-blur-md p-4 rounded-3xl border border-white/20 text-center">
+                                                <p class="text-[10px] font-black uppercase tracking-[0.3em] text-white">Hub Official Identity</p>
+                                                <h4 class="text-xl font-black text-white italic tracking-tighter">MESCA</h4>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="p-4 bg-black/30 rounded-2xl border border-white/5 italic text-blue-100 text-sm leading-relaxed">"Innovation is the bridge between a problem and its solution."</div>
                                 </div>
                             </div>
                         </div>
-                        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 flex items-center gap-4 border-l-4 border-l-blue-500 max-sm shadow-xl">
-                            <div class="w-12 h-12 bg-slate-800 rounded-2xl flex items-center justify-center"><i data-lucide="target" class="text-emerald-400"></i></div>
-                            <div><p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Round 2 Submissions</p><p class="text-3xl font-black text-white">${round2Count}</p></div>
+
+                        <!-- Secondary Info Blocks -->
+                        <div class="grid md:grid-cols-2 gap-8">
+                            <div class="bg-slate-900/60 backdrop-blur-md border border-slate-800 rounded-[3rem] p-8 flex items-center gap-8 shadow-xl border-l-8 border-l-blue-600 transition-transform hover:-translate-y-1">
+                                <div class="w-24 h-24 bg-blue-600 rounded-[2rem] flex items-center justify-center shadow-2xl overflow-hidden border-4 border-slate-800 shrink-0">
+                                    <img src="https://ik.imagekit.io/vgflfdcic/AI%20INNOVATOR/Media.png" class="w-full h-full object-cover">
+                                </div>
+                                <div class="space-y-2">
+                                    <h3 class="text-blue-400 font-black text-[10px] uppercase tracking-[0.3em]">Round 1 Champion</h3>
+                                    <p class="text-3xl font-black text-white italic tracking-tighter uppercase leading-none">Michael Oredunni</p>
+                                    <p class="text-slate-500 text-sm font-bold">Marketing Team • 3 Cumulative Points</p>
+                                </div>
+                            </div>
+
+                            <div class="bg-slate-900/60 backdrop-blur-md border border-slate-800 rounded-[3rem] p-8 flex items-center gap-8 shadow-xl border-l-8 border-l-emerald-500 transition-transform hover:-translate-y-1">
+                                <div class="w-20 h-20 bg-emerald-500/10 rounded-[2rem] flex items-center justify-center shrink-0 border border-emerald-500/20">
+                                    <i data-lucide="activity" class="text-emerald-500 w-10 h-10"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-emerald-500 font-black text-[10px] uppercase tracking-[0.3em]">Round 2 Activity</h3>
+                                    <p class="text-5xl font-black text-white italic tracking-tighter">${round2Count}</p>
+                                    <p class="text-slate-500 text-sm font-bold mt-1 uppercase tracking-widest">Efficiency Solutions Recorded</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 `;
@@ -407,11 +451,11 @@
                             </div>
                             <div class="bg-slate-900 border border-slate-800 p-8 rounded-[2rem] text-center shadow-xl border-l-4 border-l-purple-500">
                                 <p class="text-purple-400 font-black text-[9px] uppercase tracking-widest mb-2">Prompting</p>
-                                <p class="text-3xl font-black text-white italic tracking-tighter">6 Pts</p>
+                                <p class="text-3xl font-black text-white italic tracking-tighter">5 Pts</p>
                             </div>
                             <div class="bg-slate-900 border border-slate-800 p-8 rounded-[2rem] text-center shadow-xl border-l-4 border-l-emerald-500">
                                 <p class="text-emerald-400 font-black text-[9px] uppercase tracking-widest mb-2">Bug Hunting</p>
-                                <p class="text-3xl font-black text-white italic tracking-tighter">2 Pts</p>
+                                <p class="text-3xl font-black text-white italic tracking-tighter">3 Pts</p>
                             </div>
                             <div class="bg-slate-900 border border-slate-800 p-8 rounded-[2rem] text-center shadow-xl border-l-4 border-l-amber-500">
                                 <p class="text-amber-400 font-black text-[9px] uppercase tracking-widest mb-2">Product Recom.</p>
@@ -441,7 +485,7 @@
                                     <div class="flex-1">
                                         <div class="flex items-center justify-between mb-2">
                                             <h3 class="text-white font-bold text-xl uppercase tracking-tight">Lunar AI Prompting</h3>
-                                            <span class="text-purple-500 font-black text-xs uppercase tracking-widest">6 Points</span>
+                                            <span class="text-purple-500 font-black text-xs uppercase tracking-widest">5 Points</span>
                                         </div>
                                         <p class="text-slate-400 leading-relaxed text-sm">How detailed was the prompt? Did they use context and clear instructions to guide the AI? Better prompts lead to better execution.</p>
                                     </div>
@@ -453,7 +497,7 @@
                                     <div class="flex-1">
                                         <div class="flex items-center justify-between mb-2">
                                             <h3 class="text-white font-bold text-xl uppercase tracking-tight">Bug Hunter Bonus</h3>
-                                            <span class="text-emerald-500 font-black text-xs uppercase tracking-widest">2 Points</span>
+                                            <span class="text-emerald-500 font-black text-xs uppercase tracking-widest">3 Points</span>
                                         </div>
                                         <p class="text-slate-400 leading-relaxed text-sm">Did the user identify a specific glitch, error message, or UI issue in PLUGIQ? Help us make the platform better by reporting technical friction.</p>
                                     </div>
@@ -555,7 +599,6 @@
                 
                 return `
                     <div class="space-y-20 animate-in fade-in">
-                        <!-- Shortlisted Section -->
                         <section class="space-y-8">
                             <div class="flex flex-col md:flex-row md:items-center justify-between gap-8 border-b border-slate-800 pb-10">
                                 <div>
@@ -571,7 +614,6 @@
                             </div>
                         </section>
 
-                        <!-- Round 2 Submission Feed -->
                         <section class="space-y-8">
                             <div class="flex items-center gap-4 border-b border-blue-500/20 pb-10">
                                 <i data-lucide="users" class="text-blue-500 w-8 h-8"></i>
@@ -586,7 +628,6 @@
                             </div>
                         </section>
 
-                        <!-- Archive Section -->
                         <section class="space-y-8 opacity-60 grayscale hover:opacity-100 hover:grayscale-0 transition-all duration-500">
                             <div class="flex flex-col md:flex-row md:items-center justify-between gap-8 border-b border-slate-800 pb-10">
                                 <div>
@@ -614,8 +655,10 @@
                                     <div class="flex justify-between items-start mb-8"><span class="text-slate-500 font-black text-xs uppercase tracking-[0.2em]">${item.month}</span>${item.status === 'completed' ? '<i data-lucide="medal" class="text-yellow-500 w-8 h-8"></i>' : item.status === 'active' ? '<div class="w-3 h-3 rounded-full bg-blue-500 animate-ping"></div>' : ''}</div>
                                     <div class="flex flex-col items-center text-center">
                                         ${item.winner ? `
-                                            <div class="w-20 h-20 bg-blue-600 rounded-2xl flex items-center justify-center text-white font-black text-2xl mb-4 shadow-xl">${item.winner.charAt(0)}</div>
-                                            <h4 class="text-white font-black uppercase italic tracking-tighter text-xl mb-1">${item.winner}</h4>
+                                            <div class="w-24 h-24 bg-blue-600 rounded-3xl flex items-center justify-center text-white font-black text-2xl mb-6 shadow-xl overflow-hidden border-2 border-white/10">
+                                                ${item.image ? `<img src="${item.image}" class="w-full h-full object-cover">` : item.winner.charAt(0)}
+                                            </div>
+                                            <h4 class="text-white font-black uppercase italic tracking-tighter text-2xl mb-1">${item.winner}</h4>
                                             <p class="text-blue-400 text-[10px] font-black uppercase tracking-widest">${item.solution}</p>
                                         ` : `
                                             <div class="py-16 flex flex-col items-center justify-center border-2 border-dashed border-slate-800 rounded-[2.5rem] w-full">
@@ -712,7 +755,7 @@
             return `
                 <div class="bg-slate-900/30 border border-slate-800/50 rounded-[2rem] p-6 flex flex-col h-full hover:border-blue-500/30 transition-all overflow-hidden group shadow-xl">
                     <div class="aspect-square bg-slate-950 rounded-2xl mb-6 overflow-hidden border border-slate-800">
-                        ${item.docLink ? `<img src="${item.docLink}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">` : `<div class="w-full h-full flex items-center justify-center text-slate-800"><i data-lucide="image" class="w-12 h-12"></i></div>`}
+                        ${item.docLink ? `<img src="${item.docLink}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">` : `<div class="w-full h-full flex items-center justify-center text-slate-800"><i data-lucide="zap" class="w-12 h-12"></i></div>`}
                     </div>
                     <div class="flex justify-between items-center mb-4">
                         <span class="text-[9px] font-black uppercase text-blue-500 tracking-widest">${item.type === 'group' ? 'TEAM' : (item.dept || 'CORE')}</span>
@@ -804,7 +847,6 @@
             `;
         }
         
-        // --- Helpers ---
         function navigate(tab) { state.activeTab = tab; updateUI(); }
         function toggleAdminLogin() { state.showAdminLogin = !state.showAdminLogin; updateUI(); }
         async function authorizeAdmin() {
@@ -884,8 +926,14 @@
                 
                 db.collection('artifacts').doc(STABLE_APP_ID).collection('public').doc('data').collection('leaderboard')
                   .onSnapshot((snapshot) => {
-                    state.leaderboard = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    state.leaderboard.sort((a, b) => (b.cumulativeScore || 0) - (a.cumulativeScore || 0));
+                    const firestoreData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    const combined = [...ROUND_1_STANDINGS];
+                    firestoreData.forEach(item => {
+                        const existingIdx = combined.findIndex(e => e.email === item.email);
+                        if (existingIdx > -1) combined[existingIdx] = item;
+                        else combined.push(item);
+                    });
+                    state.leaderboard = combined.sort((a, b) => (b.cumulativeScore || 0) - (a.cumulativeScore || 0));
                     updateUI();
                   });
                 updateUI();
