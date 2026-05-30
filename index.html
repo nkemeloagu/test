@@ -521,8 +521,8 @@
 
         function updateCountdown() {
             const now = new Date();
-            // Updated target date: 20th May 2026 (Month is 0-indexed, so May is 4)
-            const targetDate = new Date(2026, 4, 20, 23, 59, 59);
+            // Updated target date strictly to: 17th June 2026 11:59PM (Month is 0-indexed, so June is 5)
+            const targetDate = new Date(2026, 5, 17, 23, 59, 0);
             const diff = targetDate - now;
 
             if (diff <= 0) {
@@ -624,7 +624,7 @@
                             </button>
                         ` : `
                             <p class="text-slate-400 text-sm italic mb-10 px-4 leading-relaxed">Enter the 6-digit code sent to <br><b class="text-blue-400">${state.authEmail}</b></p>
-                            <input id="gatewayOtp" type="text" maxlength="6" class="w-full bg-slate-950 border-2 border-slate-800 rounded-2xl p-5 text-center text-white outline-none focus:ring-2 ring-blue-600 font-mono tracking-[0.5em] text-2xl font-bold mb-6" placeholder="000000">
+                            <input id="gatewayOtp" type="text" maxlength="6" class="w-full bg-slate-950 border border-slate-800 rounded-2xl p-5 text-center text-white outline-none focus:ring-2 ring-blue-600 font-mono tracking-[0.5em] text-2xl font-bold mb-6" placeholder="000000">
                             <div id="gatewayError" class="hidden text-red-500 text-[10px] font-bold uppercase mb-6"></div>
                             <button onclick="verifyOtp()" class="w-full bg-blue-600 text-white font-black py-5 rounded-2xl uppercase tracking-widest text-[11px] hover:bg-blue-500 transition shadow-xl active:scale-[0.98] mb-4">VERIFY & ENTER</button>
                             <button onclick="state.gatewayView = 'email'; updateUI();" class="text-slate-500 text-[10px] font-black uppercase tracking-widest hover:text-white transition">Back to Email</button>
@@ -636,7 +636,7 @@
 
         function renderTabContent() {
             if (state.activeTab === 'dashboard') {
-                const round3Count = state.submissions.filter(s => s.round === 3).length;
+                const round4Count = state.submissions.filter(s => s.round === 4).length;
                 return `
                     <div class="space-y-12 animate-in fade-in">
                         <div class="relative p-10 md:p-14 rounded-[3.5rem] hero-gradient overflow-hidden shadow-[0_0_100px_rgba(30,58,138,0.3)] border border-white/10 group">
@@ -645,11 +645,11 @@
                                 <div class="lg:col-span-7 space-y-8">
                                     <div>
                                         <span class="inline-flex items-center gap-2 bg-blue-500/20 text-blue-400 border border-blue-500/30 px-4 py-1.5 rounded-full text-[10px] uppercase font-black tracking-[0.2em]">
-                                            <span class="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span> Round 3 Mission: ONGOING
+                                            <span class="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span> Round 4 Mission: ONGOING
                                         </span>
-                                        <h2 class="text-5xl md:text-7xl font-black mt-8 mb-6 text-white leading-[0.9] italic tracking-tighter uppercase">Build a website with AI</h2>
+                                        <h2 class="text-5xl md:text-7xl font-black mt-8 mb-6 text-white leading-[0.9] italic tracking-tighter uppercase">June AI Challenge: The Optimizer</h2>
                                         <p class="text-blue-100/80 text-xl leading-relaxed max-w-xl font-medium italic">
-                                            Create a premium landing page for "Curve & Confidence"—a fashion brand dedicated to empowering plus-size individuals. Using Gemini Canvas, you will design a high-fidelity website that feels inclusive, professional, and luxury-grade without writing a single line of code.
+                                            Every department has that one task that takes too long, creates friction, or slows down delivery. Your mission this month is to identify a specific operational bottleneck within your department and use AI to architect a solution. This is about saving time, reducing errors, and optimizing how your team works.
                                         </p>
                                     </div>
                                     <div class="flex flex-wrap gap-6 items-center">
@@ -690,14 +690,14 @@
                                 </div>
                             </div>
 
-                            <!-- Round 3 Activity Box -->
+                            <!-- Round 4 Activity Box -->
                             <div class="bg-slate-900/60 backdrop-blur-md border border-slate-800 rounded-[3.5rem] p-10 flex items-center gap-10 shadow-xl border-l-8 border-l-blue-600 transition-transform hover:-translate-y-1">
                                 <div class="w-24 h-24 bg-blue-600/10 rounded-[2.5rem] flex items-center justify-center shrink-0 border border-blue-500/20 shadow-inner">
                                     <i data-lucide="activity" class="text-blue-500 w-12 h-12"></i>
                                 </div>
                                 <div class="space-y-1">
-                                    <h3 class="text-blue-500 font-black text-[10px] uppercase tracking-[0.4em]">Round 3 Activity</h3>
-                                    <p class="text-6xl font-black text-white italic tracking-tighter leading-none">${round3Count}</p>
+                                    <h3 class="text-blue-500 font-black text-[10px] uppercase tracking-[0.4em]">Round 4 Activity</h3>
+                                    <p class="text-6xl font-black text-white italic tracking-tighter leading-none">${round4Count}</p>
                                     <p class="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em]">Solutions Recorded</p>
                                 </div>
                             </div>
@@ -748,8 +748,8 @@
                 return `
                     <div class="max-w-4xl mx-auto space-y-12 animate-in slide-in-from-bottom duration-500">
                         <div class="border-b border-slate-800 pb-8 text-center">
-                            <h2 class="text-4xl font-black mb-4 text-white uppercase italic tracking-tighter">Build a website with AI</h2>
-                            <p class="text-slate-400 text-lg opacity-70">Create a premium landing page for "Curve & Confidence"—a fashion brand dedicated to empowering plus-size individuals. Using Gemini Canvas, you will design a high-fidelity website that feels inclusive, professional, and luxury-grade without writing a single line of code.</p>
+                            <h2 class="text-4xl font-black mb-4 text-white uppercase italic tracking-tighter">June AI Challenge: The Optimizer</h2>
+                            <p class="text-slate-400 text-lg opacity-70">Every department has that one task that takes too long, creates friction, or slows down delivery. Your mission this month is to identify a specific operational bottleneck within your department and use AI to architect a solution. This is about saving time, reducing errors, and optimizing how your team works.</p>
                         </div>
                                                 
                         <div class="bg-blue-600/10 border-2 border-blue-500/20 p-8 rounded-[3rem] shadow-xl">
@@ -768,79 +768,80 @@
 
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                             <div class="bg-slate-900 border border-slate-800 p-8 rounded-[2rem] text-center shadow-xl border-l-4 border-l-blue-500">
-                                <p class="text-blue-400 font-black text-[9px] uppercase tracking-widest mb-2">Brand Identity</p>
+                                <p class="text-blue-400 font-black text-[9px] uppercase tracking-widest mb-2">Problem Definition</p>
                                 <p class="text-3xl font-black text-white italic tracking-tighter">5 Pts</p>
                             </div>
                             <div class="bg-slate-900 border border-slate-800 p-8 rounded-[2rem] text-center shadow-xl border-l-4 border-l-purple-500">
-                                <p class="text-purple-400 font-black text-[9px] uppercase tracking-widest mb-2">Site Features</p>
+                                <p class="text-purple-400 font-black text-[9px] uppercase tracking-widest mb-2">Prompt Mastery</p>
                                 <p class="text-3xl font-black text-white italic tracking-tighter">5 Pts</p>
                             </div>
                             <div class="bg-slate-900 border border-slate-800 p-8 rounded-[2rem] text-center shadow-xl border-l-4 border-l-emerald-500">
-                                <p class="text-emerald-400 font-black text-[9px] uppercase tracking-widest mb-2">Creativity</p>
+                                <p class="text-emerald-400 font-black text-[9px] uppercase tracking-widest mb-2">Operational Impact</p>
                                 <p class="text-3xl font-black text-white italic tracking-tighter">5 Pts</p>
                             </div>
                             <div class="bg-slate-900 border border-slate-800 p-8 rounded-[2rem] text-center shadow-xl border-l-4 border-l-amber-500">
-                                <p class="text-amber-400 font-black text-[9px] uppercase tracking-widest mb-2">UX/Professionalism</p>
+                                <p class="text-amber-400 font-black text-[9px] uppercase tracking-widest mb-2">Presentation</p>
                                 <p class="text-3xl font-black text-white italic tracking-tighter">5 Pts</p>
                             </div>
                         </div>
 
                         <div class="bg-slate-900 border border-slate-800 p-8 rounded-3xl shadow-xl">
-                            <h3 class="text-2xl font-black text-white mb-8 uppercase flex items-center gap-3 italic"><i data-lucide="award" class="text-blue-500"></i> Evaluation Criteria</h3>
+                            <h3 class="text-2xl font-black text-white mb-8 uppercase flex items-center gap-3 italic"><i data-lucide="award" class="text-blue-500"></i> Scoring Criteria (20 Points Total)</h3>
+                            <p class="text-slate-400 text-sm mb-8">Our evaluation panel will judge submissions based on practicality and measurable business value, broken down into four core pillars:</p>
                             <ul class="space-y-12">
                                 <li class="flex items-start gap-5 group">
                                     <div class="mt-1 bg-blue-500/10 text-blue-400 p-2 rounded-lg border border-blue-500/20 group-hover:bg-blue-500 group-hover:text-white transition-all duration-300">
-                                        <i data-lucide="palette" class="w-6 h-6"></i>
+                                        <i data-lucide="alert-circle" class="w-6 h-6"></i>
                                     </div>
                                     <div class="flex-1">
                                         <div class="flex items-center justify-between mb-2">
-                                            <h3 class="text-white font-bold text-xl uppercase tracking-tight">Brand Identity & Color</h3>
+                                            <h3 class="text-white font-bold text-xl uppercase tracking-tight">Problem Definition & Clarity</h3>
                                             <span class="text-blue-500 font-black text-xs uppercase tracking-widest">5 Points</span>
                                         </div>
-                                        <p class="text-slate-400 leading-relaxed text-sm">Color Match: Does the site use gold and brown consistently? Does the aesthetic reflect a premium fashion brand?</p>
+                                        <p class="text-slate-400 leading-relaxed text-sm"><strong class="highlight-text">The "Why":</strong> Did you clearly identify a genuine, real-world departmental bottleneck? Is the scope of the problem well-defined?</p>
                                     </div>
                                 </li>
                                 <li class="flex items-start gap-5 group">
                                     <div class="mt-1 bg-purple-500/10 text-purple-400 p-2 rounded-lg border border-purple-500/20 group-hover:bg-purple-500 group-hover:text-white transition-all duration-300">
-                                        <i data-lucide="layout" class="w-6 h-6"></i>
+                                        <i data-lucide="terminal" class="w-6 h-6"></i>
                                     </div>
                                     <div class="flex-1">
                                         <div class="flex items-center justify-between mb-2">
-                                            <h3 class="text-white font-bold text-xl uppercase tracking-tight">Essential Site Features</h3>
+                                            <h3 class="text-white font-bold text-xl uppercase tracking-tight">Prompt Engineering & Tool Mastery</h3>
                                             <span class="text-purple-500 font-black text-xs uppercase tracking-widest">5 Points</span>
                                         </div>
-                                        <p class="text-slate-400 leading-relaxed text-sm">Structure: Does the page include a Hero section, Mission & Vision, Services, an "About Us" section, and all fictional contact details?</p>
+                                        <p class="text-slate-400 leading-relaxed text-sm"><strong class="highlight-text">The "How":</strong> How sophisticated is the AI solution? Did you use advanced prompting techniques (delimiters, role-playing, clear constraints) to ensure the AI output is highly reliable and repeatable?</p>
                                     </div>
                                 </li>
                                 <li class="flex items-start gap-5 group">
                                     <div class="mt-1 bg-emerald-500/10 text-emerald-400 p-2 rounded-lg border border-emerald-500/20 group-hover:bg-emerald-500 group-hover:text-white transition-all duration-300">
-                                        <i data-lucide="lightbulb" class="w-6 h-6"></i>
+                                        <i data-lucide="trending-up" class="w-6 h-6"></i>
                                     </div>
                                     <div class="flex-1">
                                         <div class="flex items-center justify-between mb-2">
-                                            <h3 class="text-white font-bold text-xl uppercase tracking-tight">Creativity & Innovation</h3>
+                                            <h3 class="text-white font-bold text-xl uppercase tracking-tight">Operational Impact & Feasibility</h3>
                                             <span class="text-emerald-500 font-black text-xs uppercase tracking-widest">5 Points</span>
                                         </div>
-                                        <p class="text-slate-400 leading-relaxed text-sm">Thinking Outside the Box: Did you add something unique? A "Size Guide" that celebrates body types? A "Meet the Stylists" section? A "Confidence Blog" snippet? etc</p>
+                                        <p class="text-slate-400 leading-relaxed text-sm"><strong class="highlight-text">The "Value":</strong> Can this solution actually be deployed in daily operations? Does it offer measurable time savings, error reduction, or speed for the team?</p>
                                     </div>
                                 </li>
                                 <li class="flex items-start gap-5 group">
                                     <div class="mt-1 bg-amber-500/10 text-amber-400 p-2 rounded-lg border border-amber-500/20 group-hover:bg-amber-500 group-hover:text-white transition-all duration-300">
-                                        <i data-lucide="monitor" class="w-6 h-6"></i>
+                                        <i data-lucide="award" class="w-6 h-6"></i>
                                     </div>
                                     <div class="flex-1">
                                         <div class="flex items-center justify-between mb-2">
-                                            <h3 class="text-white font-bold text-xl uppercase tracking-tight">UX & Professionalism</h3>
+                                            <h3 class="text-white font-bold text-xl uppercase tracking-tight">Presentation & Professionalism</h3>
                                             <span class="text-amber-500 font-black text-xs uppercase tracking-widest">5 Points</span>
                                         </div>
-                                        <p class="text-slate-400 leading-relaxed text-sm">Responsiveness: Does the layout remain clean and professional across both mobile and desktop views?</p>
+                                        <p class="text-slate-400 leading-relaxed text-sm"><strong class="highlight-text">The "Delivery":</strong> Is the solution documented clearly so that another team member can replicate it without confusion? Are the outputs clean and enterprise-ready?</p>
                                     </div>
                                 </li>
                             </ul>
                         </div>
 
                         <div class="bg-slate-900 border-2 border-blue-500/20 rounded-[3rem] p-12 shadow-2xl">
-                            <h3 class="text-3xl font-black text-white mb-10 italic uppercase tracking-tighter flex items-center gap-3"><i data-lucide="plus-circle" class="text-blue-500"></i> Share Round 3 Submission</h3>
+                            <h3 class="text-3xl font-black text-white mb-10 italic uppercase tracking-tighter flex items-center gap-3"><i data-lucide="plus-circle" class="text-blue-500"></i> Share Round 4 Submission</h3>
                             <div class="flex gap-4 mb-10 bg-slate-950 p-2 rounded-2xl border border-slate-800 max-w-md">
                                 <button onclick="setSubmissionType('individual')" class="flex-1 py-3 rounded-xl font-black text-[10px] uppercase transition-all ${state.submissionType === 'individual' ? 'bg-blue-600 text-white' : 'text-slate-500'}">Individual</button>
                                 <button onclick="setSubmissionType('group')" class="flex-1 py-3 rounded-xl font-black text-[10px] uppercase transition-all ${state.submissionType === 'group' ? 'bg-blue-600 text-white' : 'text-slate-500'}">Group (Team of 2)</button>
@@ -854,7 +855,7 @@
                                     </div>
                                 ` : `
                                     <div class="space-y-8 animate-in slide-in-from-top-2">
-                                        <div class="space-y-2"><label class="text-[10px] font-black text-slate-500 uppercase ml-1">Team Name</label><input required oninput="handleFormInput('formData', 'teamName', this.value)" value="${state.formData.teamName || ''}" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-black uppercase italic" placeholder="THE INNOVATION DUO"></div>
+                                        <div class="space-y-2"><label class="text-[10px] font-black text-slate-500 uppercase ml-1">Team Name</label><input required oninput="handleFormInput('formData', 'teamName', this.value)" value="${state.formData.teamName || ''}" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-black uppercase italic" placeholder="THE OPTIMIZERS"></div>
                                         <div class="grid md:grid-cols-2 gap-6 p-8 bg-slate-950 rounded-3xl border border-slate-800">
                                             <div class="col-span-full border-b border-slate-800 pb-3 mb-3"><span class="text-[10px] font-black text-blue-500 uppercase">Team Member 01</span></div>
                                             <div class="space-y-2">
@@ -895,13 +896,21 @@
                                 `}
                                 <div class="pt-10 border-t border-slate-800 space-y-8">
                                     <div class="space-y-2">
-                                        <label class="text-[10px] font-black text-slate-500 uppercase ml-1">Gemini Canvas Link</label>
-                                        <input required oninput="handleFormInput('formData', 'canvasLink', this.value)" value="${state.formData.canvasLink || ''}" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 text-sm font-medium" placeholder="https://gemini.google.com/share/xxxxxxxx">
-                                        <p class="text-[9px] text-slate-600 italic px-1">Ensure the share link is public or accessible to reviewers.</p>
+                                        <label class="text-[10px] font-black text-slate-500 uppercase ml-1">Problem Definition & Scope</label>
+                                        <textarea required oninput="handleFormInput('formData', 'problemDefinition', this.value)" rows="4" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 text-sm font-medium" placeholder="Identify and describe the genuine, real-world operational bottleneck within your department...">${state.formData.problemDefinition || ''}</textarea>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="text-[10px] font-black text-slate-500 uppercase ml-1">Tools Used</label>
+                                        <input required oninput="handleFormInput('formData', 'toolsUsed', this.value)" value="${state.formData.toolsUsed || ''}" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 text-sm font-medium" placeholder="e.g. Gemini Canvas, Make.com, Python script, ChatGPT, Google Apps Script">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="text-[10px] font-black text-slate-500 uppercase ml-1">Solution Link (App, PDF, or Video)</label>
+                                        <input required oninput="handleFormInput('formData', 'solutionLink', this.value)" value="${state.formData.solutionLink || ''}" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 text-sm font-medium" placeholder="https://drive.google.com/... or https://gemini.google.com/share/...">
+                                        <p class="text-[9px] text-slate-600 italic px-1">Provide the link to either an app, PDF documentation, or a video walkthrough detailing your solution.</p>
                                     </div>
                                 </div>
                                 <div id="formStatus"></div>
-                                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-6 rounded-2xl transition shadow-2xl uppercase tracking-[0.2em] active:scale-[0.98]">Submit Round 3 Entry</button>
+                                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-6 rounded-2xl transition shadow-2xl uppercase tracking-[0.2em] active:scale-[0.98]">Submit Round 4 Entry</button>
                             </form>
                         </div>
                     </div>
@@ -909,6 +918,7 @@
             }
             if (state.activeTab === 'gallery') {
                 const shortlisted = state.submissions.filter(s => s.shortlisted);
+                const round4Submissions = state.submissions.filter(s => s.round === 4);
                 const round3Submissions = state.submissions.filter(s => s.round === 3);
                 const round2Submissions = state.submissions.filter(s => s.round === 2);
                 const round1Submissions = state.submissions.filter(s => s.round === 1 || !s.round);
@@ -935,16 +945,28 @@
                                 <i data-lucide="users" class="text-blue-500 w-8 h-8"></i>
                                 <div>
                                     <h2 class="text-2xl font-black text-white italic tracking-tighter uppercase leading-none">Submission Feed</h2>
-                                    <p class="text-blue-500 text-[10px] font-black uppercase tracking-[0.3em] mt-2 italic">Current: Round 3 Website Building entries</p>
+                                    <p class="text-blue-500 text-[10px] font-black uppercase tracking-[0.3em] mt-2 italic">Current: Round 4 Operational Optimizer entries</p>
                                 </div>
                             </div>
                             <div class="grid md:grid-cols-3 gap-6">
-                                ${round3Submissions.map(item => renderSubmissionCard(item)).join('')}
-                                ${round3Submissions.length === 0 ? '<div class="col-span-full py-24 text-center border-2 border-dashed border-slate-800 rounded-[3rem] italic text-slate-600 font-black uppercase tracking-[0.2em]">Awaiting Round 3 entries...</div>' : ''}
+                                ${round4Submissions.map(item => renderSubmissionCard(item)).join('')}
+                                ${round4Submissions.length === 0 ? '<div class="col-span-full py-24 text-center border-2 border-dashed border-slate-800 rounded-[3rem] italic text-slate-600 font-black uppercase tracking-[0.2em]">Awaiting Round 4 entries...</div>' : ''}
                             </div>
                         </section>
 
                         <section class="space-y-8 opacity-60 hover:opacity-100 transition-all duration-500 grayscale hover:grayscale-0">
+                            <div class="flex flex-col md:flex-row md:items-center justify-between gap-8 border-b border-slate-800 pb-10">
+                                <div>
+                                    <h2 class="text-2xl font-black text-slate-400 italic tracking-tighter uppercase leading-none">Round 3 Archive</h2>
+                                    <p class="text-slate-600 text-[10px] font-black uppercase tracking-[0.3em] mt-2 italic">Completed: Build a Website with AI</p>
+                                </div>
+                            </div>
+                            <div class="grid md:grid-cols-3 gap-6">
+                                ${round3Submissions.map(item => renderSubmissionCard(item)).join('')}
+                            </div>
+                        </section>
+
+                        <section class="space-y-8 opacity-50 grayscale transition-all duration-500">
                             <div class="flex flex-col md:flex-row md:items-center justify-between gap-8 border-b border-slate-800 pb-10">
                                 <div>
                                     <h2 class="text-2xl font-black text-slate-400 italic tracking-tighter uppercase leading-none">Round 2 Archive</h2>
@@ -1067,9 +1089,9 @@
                                     ${state.submissions.map(sub => `
                                         <tr class="hover:bg-white/5 transition">
                                             <td class="p-6"><b class="text-white uppercase tracking-tight">${sub.type === 'group' ? sub.teamName : sub.name}</b><br><span class="opacity-50 italic text-[10px] uppercase tracking-widest font-black text-blue-400">${sub.type === 'group' ? 'Group' : (sub.dept || 'Indiv')}</span></td>
-                                            <td class="p-6 font-black uppercase text-blue-100 italic">${sub.round === 3 ? (sub.canvasLink ? 'Shared Link' : 'Website') : (sub.innovationName || 'Entry')}</td>
+                                            <td class="p-6 font-black uppercase text-blue-100 italic">${sub.round === 4 ? 'The Optimizer App' : (sub.round === 3 ? (sub.canvasLink ? 'Shared Link' : 'Website') : (sub.innovationName || 'Entry'))}</td>
                                             <td class="p-6 font-black text-blue-500">R${sub.round || 1}</td>
-                                            <td class="p-6">${sub.docLink ? `<img src="${sub.docLink}" class="w-10 h-10 rounded-lg object-cover">` : sub.canvasLink ? `<a href="${sub.canvasLink}" target="_blank" class="text-blue-500 underline text-[10px]">View Link</a>` : '-'}</td>
+                                            <td class="p-6">${sub.docLink ? `<img src="${sub.docLink}" class="w-10 h-10 rounded-lg object-cover">` : sub.round === 4 ? (sub.solutionLink ? `<a href="${sub.solutionLink}" target="_blank" class="text-blue-500 underline text-[10px]">View Link</a>` : '-') : (sub.canvasLink ? `<a href="${sub.canvasLink}" target="_blank" class="text-blue-500 underline text-[10px]">View Link</a>` : '-')}</td>
                                             <td class="p-6 text-center"><button onclick="toggleShortlist('${sub.id}', ${sub.shortlisted})" class="p-4 rounded-2xl ${sub.shortlisted ? 'bg-yellow-500 text-black' : 'bg-slate-800 text-slate-500'} hover:scale-110 transition-all"><i data-lucide="star" class="w-6 h-6 ${sub.shortlisted ? 'fill-black' : ''}"></i></button></td>
                                         </tr>
                                     `).join('')}
@@ -1082,6 +1104,14 @@
         }
 
         function renderSubmissionCard(item) {
+            const isRound3 = item.round === 3;
+            const isRound4 = item.round === 4;
+            let title = item.innovationName || 'Submission';
+            if (isRound4) {
+                title = item.problemDefinition ? 'Department Optimizer' : 'AI Optimization';
+            } else if (isRound3) {
+                title = item.canvasLink ? 'Gemini Canvas Entry' : 'AI Website Entry';
+            }
             return `
                 <div class="bg-slate-900/30 border border-slate-800/50 rounded-[2rem] p-6 flex flex-col h-full hover:border-blue-500/30 transition-all overflow-hidden group shadow-xl">
                     <div class="aspect-square bg-slate-950 rounded-2xl mb-6 overflow-hidden border border-slate-800 flex items-center justify-center">
@@ -1091,7 +1121,7 @@
                         <span class="text-[9px] font-black uppercase text-blue-500 tracking-widest">${item.type === 'group' ? 'TEAM' : (item.dept || 'CORE')}</span>
                         <span class="text-[8px] font-black uppercase px-2 py-1 rounded bg-slate-800 text-slate-400">Round ${item.round || 1}</span>
                     </div>
-                    <h3 class="text-xl font-black text-white mb-2 uppercase italic tracking-tighter truncate break-words">${item.round === 3 ? (item.canvasLink ? 'Gemini Canvas Entry' : 'AI Website Entry') : (item.innovationName || 'Submission')}</h3>
+                    <h3 class="text-xl font-black text-white mb-2 uppercase italic tracking-tighter truncate break-words">${title}</h3>
                     <p class="text-slate-500 text-[10px] uppercase tracking-[0.2em] font-black mb-8 truncate">
                         BY ${item.type === 'group' ? item.teamName : `${item.name}`}
                     </p>
@@ -1102,12 +1132,14 @@
 
         function renderModal() {
             const item = state.selectedInnovation;
+            const isR4 = item.round === 4;
+            const titleText = isR4 ? 'Operational Optimizer' : (item.round === 3 ? 'AI Built Fashion Landing Page' : (item.innovationName || 'Submission'));
             return `
                 <div class="fixed inset-0 z-[110] bg-slate-950/98 backdrop-blur-3xl flex items-center justify-center p-6 animate-in fade-in duration-300">
                     <div class="bg-slate-900 max-w-2xl w-full p-12 rounded-[4rem] border-2 border-blue-500/30 shadow-[0_0_100px_rgba(37,99,235,0.2)] relative max-h-[90vh] overflow-y-auto custom-card">
                         <button onclick="closeModal()" class="absolute top-10 right-10 text-slate-500 hover:text-white transition-all hover:rotate-90"><i data-lucide="x" class="w-10 h-10"></i></button>
                         <span class="bg-blue-600/20 text-blue-400 border border-blue-400/30 px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.2em] italic">ROUND ${item.round || 1} ENTRY DETAIL</span>
-                        <h3 class="text-4xl font-black text-white italic tracking-tighter uppercase leading-tight mt-8 mb-6 break-words">${item.round === 3 ? 'AI Built Fashion Landing Page' : (item.innovationName || 'Submission')}</h3>
+                        <h3 class="text-4xl font-black text-white italic tracking-tighter uppercase leading-tight mt-8 mb-6 break-words">${titleText}</h3>
                         ${item.docLink ? `<img src="${item.docLink}" class="w-full aspect-square object-cover rounded-[2rem] border-2 border-blue-500/20 mb-10 shadow-2xl">` : ''}
                         <div class="space-y-4 mb-12">
                             ${item.type === 'group' ? `
@@ -1121,27 +1153,44 @@
                                 <div class="flex items-center gap-3 text-slate-400 text-[10px] font-black uppercase tracking-widest px-1"><i data-lucide="briefcase" class="w-3 h-3"></i> ${item.dept || 'CORE'}</div>
                             `}
                         </div>
-                        ${item.canvasLink ? `
-                            <div class="bg-black/60 rounded-[2.5rem] p-10 border border-white/5 mb-12 shadow-inner">
-                                <h4 class="text-[11px] font-black text-blue-400 uppercase tracking-[0.3em] flex items-center gap-3 mb-4"><i data-lucide="external-link" class="w-4 h-4"></i> Shared Website Link</h4>
-                                <a href="${item.canvasLink}" target="_blank" class="text-blue-100 text-sm leading-relaxed italic break-all underline decoration-blue-500/50">${item.canvasLink}</a>
-                            </div>
-                        ` : ''}
-                        ${item.round === 2 ? `
+                        ${isR4 ? `
                             <div class="bg-black/60 rounded-[2.5rem] p-10 border border-white/5 mb-6 shadow-inner">
-                                <h4 class="text-[11px] font-black text-emerald-400 uppercase tracking-[0.3em] flex items-center gap-3 mb-4"><i data-lucide="bug" class="w-4 h-4"></i> Bugs Identified</h4>
-                                <p class="text-slate-200 text-base leading-relaxed italic break-words whitespace-pre-wrap">${item.bugsIdentified || 'None reported.'}</p>
+                                <h4 class="text-[11px] font-black text-blue-400 uppercase tracking-[0.3em] flex items-center gap-3 mb-4"><i data-lucide="alert-circle" class="w-4 h-4"></i> Problem Definition & Scope</h4>
+                                <p class="text-slate-200 text-base leading-relaxed italic break-words whitespace-pre-wrap">${item.problemDefinition || 'None reported.'}</p>
                             </div>
-                            <div class="bg-black/60 rounded-[2.5rem] p-10 border border-white/5 mb-12 shadow-inner">
-                                <h4 class="text-[11px] font-black text-amber-400 uppercase tracking-[0.3em] flex items-center gap-3 mb-4"><i data-lucide="zap" class="w-4 h-4"></i> Recommendations</h4>
-                                <p class="text-slate-200 text-base leading-relaxed italic break-words whitespace-pre-wrap">${item.productRecommendations || 'None suggested.'}</p>
+                            <div class="bg-black/60 rounded-[2.5rem] p-10 border border-white/5 mb-6 shadow-inner">
+                                <h4 class="text-[11px] font-black text-emerald-400 uppercase tracking-[0.3em] flex items-center gap-3 mb-4"><i data-lucide="cpu" class="w-4 h-4"></i> Tools Used</h4>
+                                <p class="text-slate-200 text-base leading-relaxed italic break-words whitespace-pre-wrap">${item.toolsUsed || 'None suggested.'}</p>
                             </div>
-                        ` : item.round === 1 ? `
-                            <div class="bg-black/60 rounded-[2.5rem] p-10 border border-white/5 mb-12 shadow-inner">
-                                <h4 class="text-[11px] font-black text-blue-400 uppercase tracking-[0.3em] flex items-center gap-3 mb-8"><i data-lucide="zap" class="w-4 h-4 fill-blue-400"></i> Prompt Used</h4>
-                                <p class="text-slate-200 text-base leading-relaxed italic break-words whitespace-pre-wrap">"${item.achievements}"</p>
-                            </div>
-                        ` : ''}
+                            ${item.solutionLink ? `
+                                <div class="bg-black/60 rounded-[2.5rem] p-10 border border-white/5 mb-12 shadow-inner">
+                                    <h4 class="text-[11px] font-black text-amber-400 uppercase tracking-[0.3em] flex items-center gap-3 mb-4"><i data-lucide="external-link" class="w-4 h-4"></i> Solution Link</h4>
+                                    <a href="${item.solutionLink}" target="_blank" class="text-blue-100 text-sm leading-relaxed italic break-all underline decoration-blue-500/50">${item.solutionLink}</a>
+                                </div>
+                            ` : ''}
+                        ` : `
+                            ${item.canvasLink ? `
+                                <div class="bg-black/60 rounded-[2.5rem] p-10 border border-white/5 mb-12 shadow-inner">
+                                    <h4 class="text-[11px] font-black text-blue-400 uppercase tracking-[0.3em] flex items-center gap-3 mb-4"><i data-lucide="external-link" class="w-4 h-4"></i> Shared Website Link</h4>
+                                    <a href="${item.canvasLink}" target="_blank" class="text-blue-100 text-sm leading-relaxed italic break-all underline decoration-blue-500/50">${item.canvasLink}</a>
+                                </div>
+                            ` : ''}
+                            ${item.round === 2 ? `
+                                <div class="bg-black/60 rounded-[2.5rem] p-10 border border-white/5 mb-6 shadow-inner">
+                                    <h4 class="text-[11px] font-black text-emerald-400 uppercase tracking-[0.3em] flex items-center gap-3 mb-4"><i data-lucide="bug" class="w-4 h-4"></i> Bugs Identified</h4>
+                                    <p class="text-slate-200 text-base leading-relaxed italic break-words whitespace-pre-wrap">${item.bugsIdentified || 'None reported.'}</p>
+                                </div>
+                                <div class="bg-black/60 rounded-[2.5rem] p-10 border border-white/5 mb-12 shadow-inner">
+                                    <h4 class="text-[11px] font-black text-amber-400 uppercase tracking-[0.3em] flex items-center gap-3 mb-4"><i data-lucide="zap" class="w-4 h-4"></i> Recommendations</h4>
+                                    <p class="text-slate-200 text-base leading-relaxed italic break-words whitespace-pre-wrap">${item.productRecommendations || 'None suggested.'}</p>
+                                </div>
+                            ` : item.round === 1 ? `
+                                <div class="bg-black/60 rounded-[2.5rem] p-10 border border-white/5 mb-12 shadow-inner">
+                                    <h4 class="text-[11px] font-black text-blue-400 uppercase tracking-[0.3em] flex items-center gap-3 mb-8"><i data-lucide="zap" class="w-4 h-4 fill-blue-400"></i> Prompt Used</h4>
+                                    <p class="text-slate-200 text-base leading-relaxed italic break-words whitespace-pre-wrap">"${item.achievements}"</p>
+                                </div>
+                            ` : ''}
+                        `}
                     </div>
                 </div>
             `;
@@ -1206,6 +1255,7 @@
             updateUI();
         }
 
+        // Clean up select states
         function closeModal() {
             state.selectedInnovation = null;
             updateUI();
@@ -1253,7 +1303,7 @@
                 await db.collection('artifacts').doc(STABLE_APP_ID).collection('public').doc('data').collection('submissions').add({
                     ...data,
                     type: state.submissionType,
-                    round: 3,
+                    round: 4,
                     shortlisted: false,
                     timestamp: new Date().toISOString()
                 });
