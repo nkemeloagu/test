@@ -755,7 +755,7 @@
                         <div class="bg-blue-600/10 border-2 border-blue-500/20 p-8 rounded-[3rem] shadow-xl">
                             <h3 class="text-2xl font-black text-white mb-6 uppercase flex items-center gap-3 italic"><i data-lucide="library" class="text-blue-400"></i> Challenge Resources</h3>
                             <div class="grid md:grid-cols-2 gap-4">
-                                <a href="https://drive.google.com/file/d/1J-8s-EKypNC7yHC6Es_QppLqWFb4nUgA/view?usp=sharing" target="_blank" class="flex items-center gap-4 bg-slate-900 hover:bg-blue-600 border border-slate-800 p-5 rounded-2xl transition-all group">
+                                <a href="https://drive.google.com/file/d/1GPjEMWjYHT7ZEqc_t2COsQ5pWeDa46xQ/view?usp=sharing" target="_blank" class="flex items-center gap-4 bg-slate-900 hover:bg-blue-600 border border-slate-800 p-5 rounded-2xl transition-all group">
                                     <div class="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center group-hover:bg-white/20"><i data-lucide="video" class="text-blue-400 group-hover:text-white"></i></div>
                                     <div><p class="text-xs font-black uppercase text-white tracking-widest">Video Walkthrough</p><p class="text-[10px] text-slate-500 group-hover:text-blue-100">Watch the tutorial guide</p></div>
                                 </a>
@@ -795,7 +795,7 @@
                                     </div>
                                     <div class="flex-1">
                                         <div class="flex items-center justify-between mb-2">
-                                            <h3 class="text-white font-bold text-xl uppercase tracking-tight">Problem Definition & Clarity</h3>
+                                            <h3 class="text-white font-bold text-xl uppercase tracking-tight">Problem Definition</h3>
                                             <span class="text-blue-500 font-black text-xs uppercase tracking-widest">5 Points</span>
                                         </div>
                                         <p class="text-slate-400 leading-relaxed text-sm"><strong class="highlight-text">The "Why":</strong> Did you clearly identify a genuine, real-world departmental bottleneck? Is the scope of the problem well-defined?</p>
@@ -810,7 +810,7 @@
                                             <h3 class="text-white font-bold text-xl uppercase tracking-tight">Prompt Engineering & Tool Mastery</h3>
                                             <span class="text-purple-500 font-black text-xs uppercase tracking-widest">5 Points</span>
                                         </div>
-                                        <p class="text-slate-400 leading-relaxed text-sm"><strong class="highlight-text">The "How":</strong> How sophisticated is the AI solution? Did you use advanced prompting techniques (delimiters, role-playing, clear constraints) to ensure the AI output is highly reliable and repeatable?</p>
+                                        <p class="text-slate-400 leading-relaxed text-sm"><strong class="highlight-text">The "How":</strong> How sophisticated is the AI solution? Is the solution’s output highly reliable and repeatable??</p>
                                     </div>
                                 </li>
                                 <li class="flex items-start gap-5 group">
@@ -834,7 +834,7 @@
                                             <h3 class="text-white font-bold text-xl uppercase tracking-tight">Presentation & Professionalism</h3>
                                             <span class="text-amber-500 font-black text-xs uppercase tracking-widest">5 Points</span>
                                         </div>
-                                        <p class="text-slate-400 leading-relaxed text-sm"><strong class="highlight-text">The "Delivery":</strong> Is the solution documented clearly so that another team member can replicate it without confusion? Are the outputs clean and enterprise-ready?</p>
+                                        <p class="text-slate-400 leading-relaxed text-sm"><strong class="highlight-text">The "Delivery":</strong> Is the solution documented clearly so that another team member can replicate it without confusion? Are the outputs and consistent?</p>
                                     </div>
                                 </li>
                             </ul>
@@ -896,12 +896,16 @@
                                 `}
                                 <div class="pt-10 border-t border-slate-800 space-y-8">
                                     <div class="space-y-2">
-                                        <label class="text-[10px] font-black text-slate-500 uppercase ml-1">Problem Definition & Scope</label>
+                                        <label class="text-[10px] font-black text-slate-500 uppercase ml-1">Problem Definition</label>
                                         <textarea required oninput="handleFormInput('formData', 'problemDefinition', this.value)" rows="4" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 text-sm font-medium" placeholder="Identify and describe the genuine, real-world operational bottleneck within your department...">${state.formData.problemDefinition || ''}</textarea>
                                     </div>
                                     <div class="space-y-2">
                                         <label class="text-[10px] font-black text-slate-500 uppercase ml-1">Tools Used</label>
                                         <input required oninput="handleFormInput('formData', 'toolsUsed', this.value)" value="${state.formData.toolsUsed || ''}" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 text-sm font-medium" placeholder="e.g. Gemini Canvas, Make.com, Python script, ChatGPT, Google Apps Script">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="text-[10px] font-black text-slate-500 uppercase ml-1">Operational Impact</label>
+                                        <textarea required oninput="handleFormInput('formData', 'operationalimpact', this.value)" rows="4" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 text-sm font-medium" placeholder="How does this solution address the identified problem, what is the measurable impact...">${state.formData.problemDefinition || ''}</textarea>
                                     </div>
                                     <div class="space-y-2">
                                         <label class="text-[10px] font-black text-slate-500 uppercase ml-1">Solution Link (App, PDF, or Video)</label>
