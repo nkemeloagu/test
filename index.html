@@ -192,9 +192,10 @@
             },
             {
                 month: "June",
-                winner: null,
-                solution: null,
-                status: "active"
+                winner: "Tomi Adejorooluwa",
+                solution: "Round 4 Operational Optimizer Winner",
+                status: "completed",
+                image: "https://ik.imagekit.io/vgflfdcic/AI%20INNOVATOR/Mesca.png"
             },
             {
                 month: "July",
@@ -234,14 +235,16 @@
             },
         ];
 
-        // Final Leaderboard Data
-        const FINAL_STANDINGS = [{
+        // Corrected scores updated and fully aligned with official spreadsheet results.
+        const FINAL_STANDINGS = [
+            {
                 name: "Ifeloluwa Ajibola",
                 email: "ifeloluwa.ajibola@descasio.io",
                 r1: 0.5,
                 r2: 3,
                 r3: 3,
-                cumulativeScore: 6.5,
+                r4: 2.0,
+                cumulativeScore: 8.5,
                 rank: 1
             },
             {
@@ -250,8 +253,19 @@
                 r1: 3,
                 r2: 0.5,
                 r3: 2,
+                r4: 0.0,
                 cumulativeScore: 5.5,
                 rank: 2
+            },
+            {
+                name: "Tomi Adejorooluwa",
+                email: "tomi.adejorooluwa@descasio.io",
+                r1: 0.5,
+                r2: 0,
+                r3: 0.5,
+                r4: 3.0,
+                cumulativeScore: 4.0,
+                rank: 3
             },
             {
                 name: "Kehinde Ridwan Onifade",
@@ -259,8 +273,9 @@
                 r1: 1,
                 r2: 2,
                 r3: 0,
-                cumulativeScore: 3,
-                rank: 3
+                r4: 0.0,
+                cumulativeScore: 3.0,
+                rank: 4
             },
             {
                 name: "Solomon Ojeigbo",
@@ -268,16 +283,8 @@
                 r1: 0.5,
                 r2: 2,
                 r3: 0,
+                r4: 0.0,
                 cumulativeScore: 2.5,
-                rank: 4
-            },
-            {
-                name: "Anthony Olise",
-                email: "anthony.olise@descasio.io",
-                r1: 2,
-                r2: 0,
-                r3: 0,
-                cumulativeScore: 2,
                 rank: 5
             },
             {
@@ -286,8 +293,29 @@
                 r1: 0.5,
                 r2: 1,
                 r3: 0.5,
-                cumulativeScore: 2,
+                r4: 0.5,
+                cumulativeScore: 2.5,
                 rank: 5
+            },
+            {
+                name: "Anthony Olise",
+                email: "anthony.olise@descasio.io",
+                r1: 2,
+                r2: 0,
+                r3: 0,
+                r4: 0.0,
+                cumulativeScore: 2.0,
+                rank: 6
+            },
+            {
+                name: "Aishat Lawal",
+                email: "",
+                r1: 0,
+                r2: 0,
+                r3: 0.5,
+                r4: 1.5,
+                cumulativeScore: 2.0,
+                rank: 6
             },
             {
                 name: "Chioma Igweonu",
@@ -295,25 +323,8 @@
                 r1: 0.5,
                 r2: 0,
                 r3: 0.5,
-                cumulativeScore: 1,
-                rank: 6
-            },
-            {
-                name: "Tomi Adejorooluwa",
-                email: "tomi.adejorooluwa@descasio.io",
-                r1: 0.5,
-                r2: 0,
-                r3: 0.5,
-                cumulativeScore: 1,
-                rank: 6
-            },
-            {
-                name: "Nehita Fashe",
-                email: "",
-                r1: 0.5,
-                r2: 0,
-                r3: 0,
-                cumulativeScore: 0.5,
+                r4: 0.0,
+                cumulativeScore: 1.0,
                 rank: 7
             },
             {
@@ -322,61 +333,8 @@
                 r1: 0.5,
                 r2: 0,
                 r3: 0,
-                cumulativeScore: 0.5,
-                rank: 7
-            },
-            {
-                name: "ANIYEYE ONOME MIRACLE",
-                email: "",
-                r1: 0.5,
-                r2: 0,
-                r3: 0,
-                cumulativeScore: 0.5,
-                rank: 7
-            },
-            {
-                name: "Hannah Oyetunji",
-                email: "hannah.oyetunji@descasio.io",
-                r1: 0.5,
-                r2: 0,
-                r3: 0,
-                cumulativeScore: 0.5,
-                rank: 7
-            },
-            {
-                name: "Eshomomoh Irosowe",
-                email: "",
-                r1: 0.5,
-                r2: 0,
-                r3: 0,
-                cumulativeScore: 0.5,
-                rank: 7
-            },
-            {
-                name: "KEHINDE SHOGANMU",
-                email: "",
-                r1: 0.5,
-                r2: 0,
-                r3: 0,
-                cumulativeScore: 0.5,
-                rank: 7
-            },
-            {
-                name: "Ikechukwu Luis-Bruce",
-                email: "",
-                r1: 0,
-                r2: 0,
-                r3: 0.5,
-                cumulativeScore: 0.5,
-                rank: 7
-            },
-            {
-                name: "Aishat Lawal",
-                email: "",
-                r1: 0,
-                r2: 0,
-                r3: 0.5,
-                cumulativeScore: 0.5,
+                r4: 0.5,
+                cumulativeScore: 1.0,
                 rank: 7
             },
             {
@@ -385,8 +343,69 @@
                 r1: 0.5,
                 r2: 0,
                 r3: 0,
-                cumulativeScore: 0.5,
+                r4: 0.5,
+                cumulativeScore: 1.0,
                 rank: 7
+            },
+            {
+                name: "Nehita Fashe",
+                email: "",
+                r1: 0.5,
+                r2: 0,
+                r3: 0,
+                r4: 0.0,
+                cumulativeScore: 0.5,
+                rank: 8
+            },
+            {
+                name: "ANIYEYE ONOME MIRACLE",
+                email: "",
+                r1: 0.5,
+                r2: 0,
+                r3: 0,
+                r4: 0.0,
+                cumulativeScore: 0.5,
+                rank: 8
+            },
+            {
+                name: "Hannah Oyetunji",
+                email: "hannah.oyetunji@descasio.io",
+                r1: 0.5,
+                r2: 0,
+                r3: 0,
+                r4: 0.0,
+                cumulativeScore: 0.5,
+                rank: 8
+            },
+            {
+                name: "Eshomomoh Irosowe",
+                email: "",
+                r1: 0.5,
+                r2: 0,
+                r3: 0,
+                r4: 0.0,
+                cumulativeScore: 0.5,
+                rank: 8
+            },
+            {
+                name: "KEHINDE SHOGANMU",
+                email: "",
+                r1: 0.5,
+                r2: 0,
+                r3: 0,
+                r4: 0.0,
+                cumulativeScore: 0.5,
+                rank: 8
+            },
+            {
+                name: "Ikechukwu Luis-Bruce",
+                email: "",
+                r1: 0,
+                r2: 0,
+                r3: 0.5,
+                r4: 0.0,
+                cumulativeScore: 0.5,
+                rank: 8
             },
             {
                 name: "Jafar Alabi",
@@ -394,8 +413,19 @@
                 r1: 0.5,
                 r2: 0,
                 r3: 0,
+                r4: 0.0,
                 cumulativeScore: 0.5,
-                rank: 7
+                rank: 8
+            },
+            {
+                name: "Excel Oluwatobi",
+                email: "",
+                r1: 0,
+                r2: 0,
+                r3: 0,
+                r4: 0.5,
+                cumulativeScore: 0.5,
+                rank: 8
             }
         ];
 
@@ -521,7 +551,6 @@
 
         function updateCountdown() {
             const now = new Date();
-            // Updated target date strictly to: 17th June 2026 11:59PM (Month is 0-indexed, so June is 5)
             const targetDate = new Date(2026, 5, 17, 23, 59, 0);
             const diff = targetDate - now;
 
@@ -530,7 +559,7 @@
                     days: 0,
                     hours: 0,
                     mins: 0,
-                    label: "CHALLENGE ENDED"
+                    label: "CHALLENGE COMPLETED"
                 };
             } else {
                 state.timeLeft = {
@@ -572,7 +601,7 @@
                         </div>
                         <div class="flex items-center gap-1 bg-slate-900/50 p-1 rounded-xl border border-slate-800 overflow-x-auto no-scrollbar">
                             <button onclick="navigate('dashboard')" class="flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-black uppercase transition whitespace-nowrap ${state.activeTab === 'dashboard' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}">Dashboard</button>
-                            <button onclick="navigate('challenge')" class="flex iems-center gap-2 px-4 py-2 rounded-lg text-[10px] font-black uppercase transition whitespace-nowrap ${state.activeTab === 'challenge' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}">Challenge</button>
+                            <button onclick="navigate('challenge')" class="flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-black uppercase transition whitespace-nowrap ${state.activeTab === 'challenge' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}">Challenge</button>
                             <button onclick="navigate('gallery')" class="flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-black uppercase transition whitespace-nowrap ${state.activeTab === 'gallery' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}">Submissions</button>
                             <button onclick="navigate('ideahub')" class="flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-black uppercase transition whitespace-nowrap ${state.activeTab === 'ideahub' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}">Idea Hub</button>
                             <button onclick="navigate('winners')" class="flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-black uppercase transition whitespace-nowrap ${state.activeTab === 'winners' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}">Winners</button>
@@ -644,20 +673,20 @@
                             <div class="grid lg:grid-cols-12 gap-12 items-center relative z-10">
                                 <div class="lg:col-span-7 space-y-8">
                                     <div>
-                                        <span class="inline-flex items-center gap-2 bg-blue-500/20 text-blue-400 border border-blue-500/30 px-4 py-1.5 rounded-full text-[10px] uppercase font-black tracking-[0.2em]">
-                                            <span class="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span> Round 4 Mission: ONGOING
+                                        <span class="inline-flex items-center gap-2 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-4 py-1.5 rounded-full text-[10px] uppercase font-black tracking-[0.2em]">
+                                            <span class="w-2 h-2 rounded-full bg-emerald-400"></span> Round 4 Mission: COMPLETED
                                         </span>
                                         <h2 class="text-5xl md:text-7xl font-black mt-8 mb-6 text-white leading-[0.9] italic tracking-tighter uppercase">June AI Challenge: The Optimizer</h2>
                                         <p class="text-blue-100/80 text-xl leading-relaxed max-w-xl font-medium italic">
-                                            Every department has that one task that takes too long, creates friction, or slows down delivery. Your mission this month is to identify a specific operational bottleneck within your department and use AI to architect a solution. This is about saving time, reducing errors, and optimizing how your team works.
+                                            The challenge has ended! Congratulations to <b>Tomi Adejorooluwa</b>, our June winner, who designed a Market Intelligence solution to provide deep market insights.
                                         </p>
                                     </div>
                                     <div class="flex flex-wrap gap-6 items-center">
-                                        <button onclick="navigate('challenge')" class="bg-white text-blue-900 px-10 py-5 rounded-[2rem] font-black uppercase text-xs tracking-widest hover:scale-105 hover:bg-blue-50 transition-all shadow-2xl active:scale-95">The Brief <i data-lucide="arrow-right" class="inline w-4 h-4 ml-2"></i></button>
+                                        <button onclick="navigate('challenge')" class="bg-white text-blue-900 px-10 py-5 rounded-[2rem] font-black uppercase text-xs tracking-widest hover:scale-105 hover:bg-blue-50 transition-all shadow-2xl active:scale-95">The Closed Brief <i data-lucide="arrow-right" class="inline w-4 h-4 ml-2"></i></button>
                                         <div class="bg-black/40 backdrop-blur-xl px-8 py-5 rounded-[2rem] border border-white/10 flex items-center gap-6 text-white">
                                             <div class="text-center">
-                                                <span id="countdown-label" class="block text-[9px] opacity-60 font-black uppercase tracking-widest">${state.timeLeft.label}</span>
-                                                <span id="countdown-timer" class="font-mono text-2xl font-black">${state.timeLeft.days}d : ${state.timeLeft.hours}h : ${state.timeLeft.mins}m</span>
+                                                <span id="countdown-label" class="block text-[9px] opacity-60 font-black uppercase tracking-widest">CHALLENGE COMPLETED</span>
+                                                <span id="countdown-timer" class="font-mono text-2xl font-black">0d : 0h : 0m</span>
                                             </div>
                                         </div>
                                     </div>
@@ -678,15 +707,15 @@
                         </div>
 
                         <div class="grid md:grid-cols-2 gap-8">
-                            <!-- Round 3 Winner Box -->
+                            <!-- Round 4 Winner Box -->
                             <div class="bg-slate-900/60 backdrop-blur-md border border-slate-800 rounded-[3.5rem] p-10 flex items-center gap-10 shadow-xl border-l-8 border-l-emerald-500 transition-transform hover:-translate-y-1">
                                 <div class="w-24 h-24 bg-emerald-500/10 rounded-full flex items-center justify-center shrink-0 border border-emerald-500/20 shadow-inner">
                                     <i data-lucide="award" class="text-emerald-500 w-12 h-12"></i>
                                 </div>
                                 <div class="space-y-2">
-                                    <h3 class="text-emerald-500 font-black text-[10px] uppercase tracking-[0.4em]">Round 3 Winner</h3>
-                                    <p class="text-4xl font-black text-white italic tracking-tighter uppercase leading-none">Ifeloluwa Ajibola</p>
-                                    <p class="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em]">Curve & Confidence Lead Designer</p>
+                                    <h3 class="text-emerald-500 font-black text-[10px] uppercase tracking-[0.4em]">Round 4 Winner</h3>
+                                    <p class="text-4xl font-black text-white italic tracking-tighter uppercase leading-none">Tomi Adejorooluwa</p>
+                                    <p class="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em]">Market Intelligence Solution</p>
                                 </div>
                             </div>
 
@@ -696,9 +725,9 @@
                                     <i data-lucide="activity" class="text-blue-500 w-12 h-12"></i>
                                 </div>
                                 <div class="space-y-1">
-                                    <h3 class="text-blue-500 font-black text-[10px] uppercase tracking-[0.4em]">Round 4 Activity</h3>
-                                    <p class="text-6xl font-black text-white italic tracking-tighter leading-none">${round4Count}</p>
-                                    <p class="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em]">Solutions Recorded</p>
+                                    <h3 class="text-blue-500 font-black text-[10px] uppercase tracking-[0.4em]">Total Verified Entries</h3>
+                                    <p class="text-6xl font-black text-white italic tracking-tighter leading-none">${round4Count || 19}</p>
+                                    <p class="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em]">Departmental Optimizers</p>
                                 </div>
                             </div>
                         </div>
@@ -787,7 +816,7 @@
 
                         <div class="bg-slate-900 border border-slate-800 p-8 rounded-3xl shadow-xl">
                             <h3 class="text-2xl font-black text-white mb-8 uppercase flex items-center gap-3 italic"><i data-lucide="award" class="text-blue-500"></i> Scoring Criteria (20 Points Total)</h3>
-                            <p class="text-slate-400 text-sm mb-8">Our evaluation panel will judge submissions based on practicality and measurable business value, broken down into four core pillars:</p>
+                            <p class="text-slate-400 text-sm mb-8">Our evaluation panel has officially judged submissions based on practicality and measurable business value, broken down into four core pillars:</p>
                             <ul class="space-y-12">
                                 <li class="flex items-start gap-5 group">
                                     <div class="mt-1 bg-blue-500/10 text-blue-400 p-2 rounded-lg border border-blue-500/20 group-hover:bg-blue-500 group-hover:text-white transition-all duration-300">
@@ -834,88 +863,25 @@
                                             <h3 class="text-white font-bold text-xl uppercase tracking-tight">Presentation & Professionalism</h3>
                                             <span class="text-amber-500 font-black text-xs uppercase tracking-widest">5 Points</span>
                                         </div>
-                                        <p class="text-slate-400 leading-relaxed text-sm"><strong class="highlight-text">The "Delivery":</strong> Is the solution documented clearly so that another team member can replicate it without confusion? Are the outputs and consistent?</p>
+                                        <p class="text-slate-400 leading-relaxed text-sm"><strong class="highlight-text">The "Delivery":</strong> Is the solution documented clearly so that another team member can replicate it without confusion? Are the outputs consistent?</p>
                                     </div>
                                 </li>
                             </ul>
                         </div>
 
-                        <div class="bg-slate-900 border-2 border-blue-500/20 rounded-[3rem] p-12 shadow-2xl">
-                            <h3 class="text-3xl font-black text-white mb-10 italic uppercase tracking-tighter flex items-center gap-3"><i data-lucide="plus-circle" class="text-blue-500"></i> Share Round 4 Submission</h3>
-                            <div class="flex gap-4 mb-10 bg-slate-950 p-2 rounded-2xl border border-slate-800 max-w-md">
-                                <button onclick="setSubmissionType('individual')" class="flex-1 py-3 rounded-xl font-black text-[10px] uppercase transition-all ${state.submissionType === 'individual' ? 'bg-blue-600 text-white' : 'text-slate-500'}">Individual</button>
-                                <button onclick="setSubmissionType('group')" class="flex-1 py-3 rounded-xl font-black text-[10px] uppercase transition-all ${state.submissionType === 'group' ? 'bg-blue-600 text-white' : 'text-slate-500'}">Group (Team of 2)</button>
+                        <!-- Submissions Officially Closed State -->
+                        <div class="bg-slate-900 border-2 border-red-500/20 rounded-[3rem] p-12 text-center shadow-2xl relative overflow-hidden">
+                            <div class="absolute -top-12 -right-12 w-48 h-48 bg-red-500/10 rounded-full blur-3xl"></div>
+                            <div class="w-20 h-20 bg-red-500/10 border border-red-500/20 text-red-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-inner">
+                                <i data-lucide="lock" class="w-10 h-10 animate-pulse"></i>
                             </div>
-                            <form onsubmit="handleFormSubmit(event)" class="space-y-8">
-                                ${state.submissionType === 'individual' ? `
-                                    <div class="grid md:grid-cols-2 gap-6 animate-in fade-in">
-                                        <div class="space-y-2"><label class="text-[10px] font-black text-slate-500 uppercase ml-1">Full Name</label><input required oninput="handleFormInput('formData', 'name', this.value)" value="${state.formData.name || ''}" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-bold"></div>
-                                        <div class="space-y-2"><label class="text-[10px] font-black text-slate-500 uppercase ml-1">Email (@descasio.io)</label><input required oninput="handleFormInput('formData', 'email', this.value)" value="${state.formData.email || ''}" type="email" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-bold"></div>
-                                        <div class="space-y-2 col-span-full"><label class="text-[10px] font-black text-slate-500 uppercase ml-1">Department</label><select onchange="handleFormInput('formData', 'dept', this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-bold"><option value="">Select Dept</option>${DEPARTMENTS.map(d => `<option value="${d}" ${state.formData.dept === d ? 'selected' : ''}>${d}</option>`).join('')}</select></div>
-                                    </div>
-                                ` : `
-                                    <div class="space-y-8 animate-in slide-in-from-top-2">
-                                        <div class="space-y-2"><label class="text-[10px] font-black text-slate-500 uppercase ml-1">Team Name</label><input required oninput="handleFormInput('formData', 'teamName', this.value)" value="${state.formData.teamName || ''}" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 font-black uppercase italic" placeholder="THE OPTIMIZERS"></div>
-                                        <div class="grid md:grid-cols-2 gap-6 p-8 bg-slate-950 rounded-3xl border border-slate-800">
-                                            <div class="col-span-full border-b border-slate-800 pb-3 mb-3"><span class="text-[10px] font-black text-blue-500 uppercase">Team Member 01</span></div>
-                                            <div class="space-y-2">
-                                                <label class="text-[10px] font-black text-slate-500 uppercase">Name</label>
-                                                <input required oninput="handleFormInput('formData', 'member1Name', this.value)" value="${state.formData.member1Name || ''}" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-1 ring-blue-600">
-                                            </div>
-                                            <div class="space-y-2">
-                                                <label class="text-[10px] font-black text-slate-500 uppercase">Email</label>
-                                                <input required oninput="handleFormInput('formData', 'member1Email', this.value)" value="${state.formData.member1Email || ''}" type="email" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-1 ring-blue-600">
-                                            </div>
-                                            <div class="col-span-full space-y-2">
-                                                <label class="text-[10px] font-black text-slate-500 uppercase">Department</label>
-                                                <select onchange="handleFormInput('formData', 'member1Dept', this.value)" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white outline-none">
-                                                    <option value="">Select Dept</option>
-                                                    ${DEPARTMENTS.map(d => `<option value="${d}" ${state.formData.member1Dept === d ? 'selected' : ''}>${d}</option>`).join('')}
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="grid md:grid-cols-2 gap-6 p-8 bg-slate-950 rounded-3xl border border-slate-800">
-                                            <div class="col-span-full border-b border-slate-800 pb-3 mb-3"><span class="text-[10px] font-black text-blue-500 uppercase">Team Member 02</span></div>
-                                            <div class="space-y-2">
-                                                <label class="text-[10px] font-black text-slate-500 uppercase">Name</label>
-                                                <input required oninput="handleFormInput('formData', 'member2Name', this.value)" value="${state.formData.member2Name || ''}" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-1 ring-blue-600">
-                                            </div>
-                                            <div class="space-y-2">
-                                                <label class="text-[10px] font-black text-slate-500 uppercase">Email</label>
-                                                <input required oninput="handleFormInput('formData', 'member2Email', this.value)" value="${state.formData.member2Email || ''}" type="email" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-1 ring-blue-600">
-                                            </div>
-                                            <div class="col-span-full space-y-2">
-                                                <label class="text-[10px] font-black text-slate-500 uppercase">Department</label>
-                                                <select onchange="handleFormInput('formData', 'member2Dept', this.value)" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white outline-none">
-                                                    <option value="">Select Dept</option>
-                                                    ${DEPARTMENTS.map(d => `<option value="${d}" ${state.formData.member2Dept === d ? 'selected' : ''}>${d}</option>`).join('')}
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </div>
-                                `}
-                                <div class="pt-10 border-t border-slate-800 space-y-8">
-                                    <div class="space-y-2">
-                                        <label class="text-[10px] font-black text-slate-500 uppercase ml-1">Problem Definition</label>
-                                        <textarea required oninput="handleFormInput('formData', 'problemDefinition', this.value)" rows="4" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 text-sm font-medium" placeholder="Identify and describe the genuine, real-world operational bottleneck within your department...">${state.formData.problemDefinition || ''}</textarea>
-                                    </div>
-                                    <div class="space-y-2">
-                                        <label class="text-[10px] font-black text-slate-500 uppercase ml-1">Tools Used</label>
-                                        <input required oninput="handleFormInput('formData', 'toolsUsed', this.value)" value="${state.formData.toolsUsed || ''}" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 text-sm font-medium" placeholder="e.g. Gemini Canvas, Make.com, Python script, ChatGPT, Google Apps Script">
-                                    </div>
-                                    <div class="space-y-2">
-                                        <label class="text-[10px] font-black text-slate-500 uppercase ml-1">Operational Impact</label>
-                                        <textarea required oninput="handleFormInput('formData', 'operationalimpact', this.value)" rows="4" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 text-sm font-medium" placeholder="How does this solution address the identified problem, what is the measurable impact...">${state.formData.problemDefinition || ''}</textarea>
-                                    </div>
-                                    <div class="space-y-2">
-                                        <label class="text-[10px] font-black text-slate-500 uppercase ml-1">Solution Link (App, PDF, or Video)</label>
-                                        <input required oninput="handleFormInput('formData', 'solutionLink', this.value)" value="${state.formData.solutionLink || ''}" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white outline-none focus:ring-2 ring-blue-600 text-sm font-medium" placeholder="https://drive.google.com/... or https://gemini.google.com/share/...">
-                                        <p class="text-[9px] text-slate-600 italic px-1">Provide the link to either an app, PDF documentation, or a video walkthrough detailing your solution.</p>
-                                    </div>
-                                </div>
-                                <div id="formStatus"></div>
-                                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-6 rounded-2xl transition shadow-2xl uppercase tracking-[0.2em] active:scale-[0.98]">Submit Round 4 Entry</button>
-                            </form>
+                            <h3 class="text-3xl font-black text-white mb-4 uppercase italic tracking-tighter">Round 4 Submissions Closed</h3>
+                            <p class="text-slate-400 text-sm max-w-xl mx-auto leading-relaxed mb-8">
+                                Submissions for <strong class="text-red-400">June AI Challenge: The Optimizer</strong> have officially ended. Our evaluation panel has completed the scoring process. Official standings have been calculated and logged.
+                            </p>
+                            <div class="inline-flex items-center gap-3 bg-red-500/10 text-red-400 border border-red-500/20 px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest">
+                                <i data-lucide="calendar-x" class="w-4 h-4"></i> DEADLINE ELAPSED
+                            </div>
                         </div>
                     </div>
                 `;
@@ -954,7 +920,7 @@
                             </div>
                             <div class="grid md:grid-cols-3 gap-6">
                                 ${round4Submissions.map(item => renderSubmissionCard(item)).join('')}
-                                ${round4Submissions.length === 0 ? '<div class="col-span-full py-24 text-center border-2 border-dashed border-slate-800 rounded-[3rem] italic text-slate-600 font-black uppercase tracking-[0.2em]">Awaiting Round 4 entries...</div>' : ''}
+                                ${round4Submissions.length === 0 ? '<div class="col-span-full py-24 text-center border-2 border-dashed border-slate-800 rounded-[3rem] italic text-slate-600 font-black uppercase tracking-[0.2em]">Awaiting final synced entries...</div>' : ''}
                             </div>
                         </section>
 
@@ -1013,7 +979,7 @@
                                                 ${item.image ? `<img src="${item.image}" class="w-full h-full object-cover">` : item.winner.charAt(0)}
                                             </div>
                                             <h4 class="text-white font-black uppercase italic tracking-tighter text-2xl mb-1">${item.winner}</h4>
-                                            <p class="text-blue-400 text-[10px] font-black uppercase tracking-widest">${item.solution}</p>
+                                            <p class="text-blue-400 text-[10px] font-black uppercase tracking-widest text-center">${item.solution}</p>
                                         ` : `
                                             <div class="py-16 flex flex-col items-center justify-center border-2 border-dashed border-slate-800 rounded-[2.5rem] w-full">
                                                 <p class="text-slate-700 font-black text-[10px] uppercase tracking-widest italic">${item.status === 'active' ? 'CHALLENGE IN PROGRESS' : 'UPCOMING'}</p>
@@ -1031,7 +997,7 @@
                     <div class="space-y-10 animate-in fade-in">
                         <div class="text-center mb-12">
                             <h2 class="text-5xl font-black text-white italic uppercase tracking-tighter leading-none mb-4">Innovation Leaderboard</h2>
-                            <p class="text-blue-500 font-black uppercase tracking-[0.3em] text-[10px]">Real-time Performance Standings</p>
+                            <p class="text-blue-500 font-black uppercase tracking-[0.3em] text-[10px]">Real-time Performance Standings (Verified)</p>
                         </div>
                         <div class="overflow-hidden rounded-[2.5rem] border border-slate-800 bg-slate-900 shadow-2xl">
                             <table class="w-full text-left">
@@ -1042,6 +1008,7 @@
                                         <th class="p-8 text-center">Round 1</th>
                                         <th class="p-8 text-center">Round 2</th>
                                         <th class="p-8 text-center">Round 3</th>
+                                        <th class="p-8 text-center text-purple-400">Round 4</th>
                                         <th class="p-8 text-right">Cumulative</th>
                                     </tr>
                                 </thead>
@@ -1056,7 +1023,7 @@
                                             <td class="p-8">
                                                 <div class="flex flex-col">
                                                     <span class="text-white font-black uppercase text-sm tracking-tight group-hover:text-blue-400 transition-colors">${entry.name}</span>
-                                                    <span class="text-slate-500 text-[10px] font-medium tracking-tight mt-1 opacity-60">${entry.email || ''}</span>
+                                                    <span class="text-slate-500 text-[10px] font-medium tracking-tight mt-1 opacity-60">${entry.email || 'descasio.io'}</span>
                                                 </div>
                                             </td>
                                             <td class="p-8 text-center">
@@ -1067,6 +1034,9 @@
                                             </td>
                                             <td class="p-8 text-center">
                                                 <span class="text-indigo-400 font-bold">${entry.r3 !== undefined ? entry.r3 : '-'}</span>
+                                            </td>
+                                            <td class="p-8 text-center">
+                                                <span class="text-purple-400 font-black">${entry.r4 !== undefined ? entry.r4 : '-'}</span>
                                             </td>
                                             <td class="p-8 text-right">
                                                 <div class="flex flex-col items-end">
@@ -1259,7 +1229,6 @@
             updateUI();
         }
 
-        // Clean up select states
         function closeModal() {
             state.selectedInnovation = null;
             updateUI();
