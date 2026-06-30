@@ -1181,7 +1181,7 @@
 
         function renderModal() {
             const item = state.selectedInnovation;
-            const isR4 = item.round === 4;
+            const isR5 = item.round === 5;
             const titleText = isR4 ? 'Operational Optimizer' : (item.round === 3 ? 'AI Built Fashion Landing Page' : (item.innovationName || 'Submission'));
             return `
                 <div class="fixed inset-0 z-[110] bg-slate-950/98 backdrop-blur-3xl flex items-center justify-center p-6 animate-in fade-in duration-300">
@@ -1351,7 +1351,7 @@
                 await db.collection('artifacts').doc(STABLE_APP_ID).collection('public').doc('data').collection('submissions').add({
                     ...data,
                     type: state.submissionType,
-                    round: 4,
+                    round: 5,
                     shortlisted: false,
                     timestamp: new Date().toISOString()
                 });
